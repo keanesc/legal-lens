@@ -6,15 +6,15 @@ import { cn } from "@/lib/utils"
 import { Settings } from "lucide-react"
 
 function App() {
-
   const [notifications, setNotifications] = useState(true)
   const [updateDaily, setUpdateDaily] = useState(true)
+  const [showSettings, setShowSettings] = useState(false) // State to toggle settings visibility
 
   const items = [
     {
       icon: "🌐",
       name: "google.com",
-      status: "Stetus: No changes",
+      status: "Status: No changes",
       checked: true,
     },
     {
@@ -24,26 +24,21 @@ function App() {
       checked: true,
     },
     {
-      icon: "📘",
-      name: "facebook.com",
-      status: "Swittter",
-      checked: true,
-    },
-    {
       icon: "🐦",
-      name: "twittored",
-      status: "",
+      name: "twitter.com",
+      status: "Status: No changes",
       checked: true,
     },
   ]
 
-    {/* <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4"> */}
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full bg-gray-100 p-4">
-      <Card className="w-full max-w-sm shadow-md">
+    <div className="flex flex-col items-center justify-center overflow-auto h-auto w-auto bg-blue-200 p-4">
+      <Card className="w-full max-w-sm shadow-md rounded-xl">
         <CardHeader className="flex justify-between items-center pb-3 border-b">
           <CardTitle className="text-lg font-semibold">Main Popup UI</CardTitle>
-          <Settings size={18} className="text-gray-500" />
+          <button onClick={() => setShowSettings(!showSettings)}>
+            <Settings size={18} className="text-gray-500" />
+          </button>
         </CardHeader>
 
         <CardContent className="space-y-3 pt-4">
@@ -72,31 +67,37 @@ function App() {
             </div>
           ))}
 
-          <div className="mt-5 space-y-3 border-t pt-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm">Notifications:</Label>
-              <Switch checked={notifications} onCheckedChange={setNotifications} />
-            </div>
+          {showSettings && ( // Conditionally render settings
+            <div
+              className={`mt-5 space-y-3 border-t pt-3 transition-all duration-300 transform ${
+                showSettings ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Notifications:</Label>
+                <Switch checked={notifications} onCheckedChange={setNotifications} />
+              </div>
 
-            <div className="flex items-center justify-between">
-              <Label className="text-sm">Update Frequency:</Label>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Daily</span>
-                <Switch checked={updateDaily} onCheckedChange={setUpdateDaily} />
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Update Frequency:</Label>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Daily</span>
+                  <Switch checked={updateDaily} onCheckedChange={setUpdateDaily} />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Language Level:</Label>
+                <button className="px-3 py-1 rounded-md border bg-gray-100 text-sm font-medium">
+                  Standard (Default)
+                </button>
               </div>
             </div>
-
-            <div className="flex items-center justify-between">
-              <Label className="text-sm">Language Level:</Label>
-              <button className="px-3 py-1 rounded-md border bg-gray-100 text-sm font-medium">
-                Standard
-              </button>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
   )
 }
 
-export default App;
+export default App
