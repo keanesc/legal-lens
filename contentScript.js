@@ -291,6 +291,10 @@ function createExplainButton() {
 /**
  * Handle explain button click
  */
+
+/**
+ * Handle explain button click
+ */
 async function handleExplainClick(element) {
   const button = element.querySelector('.tos-simplifier-explain-btn');
   if (button) {
@@ -304,56 +308,64 @@ async function handleExplainClick(element) {
     
     if (!text || text.trim().length < DETECTION_CONFIG.minTextLength) {
       showResult('⚠️ Could not extract sufficient text from the Terms of Service.', 'error');
+      resetExplainButton(button);
       return;
     }
     
-    // Send to background script for summarization
+    // Send to background script for summarization with retry logic
     const msg = {
       type: 'EXTRACT_TEXT',
       text: text,
       url: window.location.href
     };
-    const send = () => chrome.runtime.sendMessage(msg, (response) => {
-      if (chrome.runtime.lastError) {
-        const err = chrome.runtime.lastError.message || '';
-        // If the service worker reloaded, retry once after a short delay
-        if (err.toLowerCase().includes('context invalidated')) {
-          setTimeout(() => {
-            chrome.runtime.sendMessage(msg, (retryResp) => {
-              if (chrome.runtime.lastError) {
-                showResult('The extension reloaded. Please click “Explain Terms” again.', 'error');
-                resetExplainButton(button);
-                return;
-              }
-              handleSummarizeResponse(retryResp, button);
-            });
-          }, 200);
-          return;
-        }
-        showResult('Error: ' + err, 'error');
-        return;
-      }
-      handleSummarizeResponse(response, button);
-    });
-    send();
+    
+    await sendMessageWithRetry(msg, button);
       
   } catch (error) {
     console.error('Error handling explain click:', error);
     showResult('Error: ' + error.message, 'error');
-    
-    if (button) {
-      button.disabled = false;
-      button.textContent = '🤖 Explain Terms';
-    }
+    resetExplainButton(button);
   }
 }
 
 /**
- * Extract text from ToS element
+ * Send message with retry logic for service worker reloads
  */
-function extractTosText(element) {
-  if (!element) return '';
-  
+async function sendMessageWithRetry(message, button, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(message, (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(response);
+          }
+        });
+      });
+      
+      handleSummarizeResponse(response, button);
+      return;
+      
+    } catch (error) {
+      const isLastAttempt = attempt === maxRetries - 1;
+      const isServiceWorkerError = error.message.includes('context invalidated') || 
+                                   error.message.includes('Extension context') ||
+                                   error.message.includes('message port');
+      
+      if (isServiceWorkerError && !isLastAttempt) {
+        // Wait before retry with exponential backoff
+        await new Promise(resolve => setTimeout(resolve, 200 * Math.pow(2, attempt)));
+        continue;
+      }
+      
+      // Last attempt or non-service-worker error
+      showResult('Error communicating with extension: ' + error.message, 'error');
+      resetExplainButton(button);
+      return;
+    }
+  }
+}
   // Clone element to avoid modifying original
   const clone = element.cloneNode(true);
   

@@ -4,45 +4,103 @@
 // Track active tabs and their ToS detection status
 const activeTabs = new Map();
 
+// Track API availability status
+let summarizerAvailability = null;
+
+/**
+ * Check Summarizer API availability on startup
+ */
+chrome.runtime.onInstalled.addListener(async () => {
+  console.log("ToS Simplifier extension installed/updated");
+  await checkSummarizerAvailability();
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+  console.log("ToS Simplifier extension started");
+  activeTabs.clear();
+  await checkSummarizerAvailability();
+});
+
+/**
+ * Check if Summarizer API is available
+ */
+async function checkSummarizerAvailability() {
+  try {
+    if (!("ai" in self) && !("Summarizer" in self)) {
+      summarizerAvailability = "unsupported";
+      console.error(
+        "[Summarizer] API not available in this browser. Requires Chrome 122+"
+      );
+      return;
+    }
+
+    const availability = await self.Summarizer.availability();
+    summarizerAvailability = availability;
+    console.log("[Summarizer] Availability status:", availability);
+
+    if (availability === "after-download") {
+      console.log(
+        "[Summarizer] Model download required. The model will download automatically on first use."
+      );
+    } else if (availability === "unavailable") {
+      console.error(
+        "[Summarizer] API unavailable. Please enable chrome://flags/#optimization-guide-on-device-model"
+      );
+    }
+  } catch (error) {
+    summarizerAvailability = "error";
+    console.error("[Summarizer] Error checking availability:", error);
+  }
+}
+
 /**
  * Listen for messages from popup and content script
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('Background received message:', message.type);
+  console.log("Background received message:", message.type);
 
   switch (message.type) {
-    case 'DETECT_TOS':
+    case "CHECK_API_STATUS":
+      // Check API availability
+      sendResponse({
+        success: true,
+        availability: summarizerAvailability,
+        message: getAvailabilityMessage(summarizerAvailability),
+      });
+      break;
+
+    case "DETECT_TOS":
       // Content script detected a ToS popup
       handleTosDetection(message, sender);
       sendResponse({ success: true });
       break;
 
-    case 'SIMPLIFY_TOS':
+    case "SIMPLIFY_TOS":
       // User clicked Simplify button
       handleSimplifyRequest(message, sender, sendResponse);
       return true; // Required for async sendResponse
       break;
 
-    case 'SAVE_TOS':
+    case "SAVE_TOS":
       // User clicked Save button
       handleSaveRequest(message, sender, sendResponse);
       return true;
       break;
 
-    case 'COMPARE_TOS':
+    case "COMPARE_TOS":
       // User clicked Compare button
       handleCompareRequest(message, sender, sendResponse);
       return true;
       break;
 
-    case 'EXTRACT_TEXT':
+    case "EXTRACT_TEXT":
       // Content script extracted ToS text
       handleTextExtraction(message, sender, sendResponse);
       return true;
       break;
 
     default:
-      sendResponse({ success: false, error: 'Unknown message type' });
+      sendResponse({ success: false, error: "Unknown message type" });
   }
 
   return true; // Keep message channel open for async responses
@@ -57,7 +115,7 @@ function handleTosDetection(message, sender) {
     activeTabs.set(tabId, {
       detected: true,
       detectedAt: Date.now(),
-      url: sender.tab.url
+      url: sender.tab.url,
     });
   }
 }
@@ -68,51 +126,57 @@ function handleTosDetection(message, sender) {
 async function handleSimplifyRequest(message, sender, sendResponse) {
   try {
     const tabId = message.tabId || sender.tab?.id;
-    
+
     if (!tabId) {
-      sendResponse({ success: false, error: 'No tab ID provided' });
+      sendResponse({ success: false, error: "No tab ID provided" });
       return;
     }
 
     // Request text extraction from content script
-    chrome.tabs.sendMessage(tabId, { type: 'EXTRACT_TOS_TEXT' }, async (response) => {
-      if (chrome.runtime.lastError) {
-        sendResponse({ 
-          success: false, 
-          error: 'Failed to communicate with content script: ' + chrome.runtime.lastError.message 
+    chrome.tabs.sendMessage(
+      tabId,
+      { type: "EXTRACT_TOS_TEXT" },
+      async (response) => {
+        if (chrome.runtime.lastError) {
+          sendResponse({
+            success: false,
+            error:
+              "Failed to communicate with content script: " +
+              chrome.runtime.lastError.message,
+          });
+          return;
+        }
+
+        if (!response || !response.text) {
+          sendResponse({ success: false, error: "No ToS text found on page" });
+          return;
+        }
+
+        // Summarize locally using Summarizer API
+        const { summary, status } = await summarizeLocally(response.text);
+
+        // Store summary for later use
+        const storedData = {
+          url: response.url,
+          originalText: response.text.substring(0, 500), // Store first 500 chars
+          summary: summary,
+          timestamp: Date.now(),
+        };
+
+        await chrome.storage.local.set({
+          [`tos_${tabId}`]: storedData,
         });
-        return;
+
+        sendResponse({
+          success: true,
+          status,
+          summary,
+          storedData: storedData,
+        });
       }
-
-      if (!response || !response.text) {
-        sendResponse({ success: false, error: 'No ToS text found on page' });
-        return;
-      }
-
-      // Summarize locally using Summarizer API
-      const { summary, status } = await summarizeLocally(response.text);
-      
-      // Store summary for later use
-      const storedData = {
-        url: response.url,
-        originalText: response.text.substring(0, 500), // Store first 500 chars
-        summary: summary,
-        timestamp: Date.now()
-      };
-
-      await chrome.storage.local.set({
-        [`tos_${tabId}`]: storedData
-      });
-
-      sendResponse({ 
-        success: true,
-        status,
-        summary,
-        storedData: storedData
-      });
-    });
+    );
   } catch (error) {
-    console.error('Error simplifying ToS:', error);
+    console.error("Error simplifying ToS:", error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -123,9 +187,9 @@ async function handleSimplifyRequest(message, sender, sendResponse) {
 async function handleSaveRequest(message, sender, sendResponse) {
   try {
     const tabId = message.tabId || sender.tab?.id;
-    
+
     if (!tabId) {
-      sendResponse({ success: false, error: 'No tab ID provided' });
+      sendResponse({ success: false, error: "No tab ID provided" });
       return;
     }
 
@@ -134,24 +198,27 @@ async function handleSaveRequest(message, sender, sendResponse) {
     const tosData = result[`tos_${tabId}`];
 
     if (!tosData) {
-      sendResponse({ success: false, error: 'No ToS data found. Please simplify first.' });
+      sendResponse({
+        success: false,
+        error: "No ToS data found. Please simplify first.",
+      });
       return;
     }
 
     // Save to saved list
-    const savedList = await chrome.storage.local.get(['saved_tos_list']);
+    const savedList = await chrome.storage.local.get(["saved_tos_list"]);
     const list = savedList.saved_tos_list || [];
-    
+
     list.push({
       ...tosData,
-      savedAt: Date.now()
+      savedAt: Date.now(),
     });
 
     await chrome.storage.local.set({ saved_tos_list: list });
 
-    sendResponse({ success: true, message: 'ToS saved successfully' });
+    sendResponse({ success: true, message: "ToS saved successfully" });
   } catch (error) {
-    console.error('Error saving ToS:', error);
+    console.error("Error saving ToS:", error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -162,9 +229,9 @@ async function handleSaveRequest(message, sender, sendResponse) {
 async function handleCompareRequest(message, sender, sendResponse) {
   try {
     const tabId = message.tabId || sender.tab?.id;
-    
+
     if (!tabId) {
-      sendResponse({ success: false, error: 'No tab ID provided' });
+      sendResponse({ success: false, error: "No tab ID provided" });
       return;
     }
 
@@ -173,28 +240,31 @@ async function handleCompareRequest(message, sender, sendResponse) {
     const currentTos = currentResult[`tos_${tabId}`];
 
     if (!currentTos) {
-      sendResponse({ success: false, error: 'No current ToS data found. Please simplify first.' });
+      sendResponse({
+        success: false,
+        error: "No current ToS data found. Please simplify first.",
+      });
       return;
     }
 
     // Get saved list
-    const savedList = await chrome.storage.local.get(['saved_tos_list']);
+    const savedList = await chrome.storage.local.get(["saved_tos_list"]);
     const list = savedList.saved_tos_list || [];
 
     if (list.length === 0) {
-      sendResponse({ success: false, error: 'No saved ToS to compare with' });
+      sendResponse({ success: false, error: "No saved ToS to compare with" });
       return;
     }
 
     // Return comparison data
-    sendResponse({ 
-      success: true, 
+    sendResponse({
+      success: true,
       current: currentTos,
       saved: list,
-      comparison: `Found ${list.length} saved ToS document(s) for comparison`
+      comparison: `Found ${list.length} saved ToS document(s) for comparison`,
     });
   } catch (error) {
-    console.error('Error comparing ToS:', error);
+    console.error("Error comparing ToS:", error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -205,7 +275,7 @@ async function handleCompareRequest(message, sender, sendResponse) {
 async function handleTextExtraction(message, sender, sendResponse) {
   try {
     if (!message.text || message.text.trim().length === 0) {
-      sendResponse({ success: false, error: 'No text extracted' });
+      sendResponse({ success: false, error: "No text extracted" });
       return;
     }
 
@@ -219,21 +289,21 @@ async function handleTextExtraction(message, sender, sendResponse) {
         url: message.url || sender.tab.url,
         originalText: message.text.substring(0, 500),
         summary: summary,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       await chrome.storage.local.set({
-        [`tos_${tabId}`]: storedData
+        [`tos_${tabId}`]: storedData,
       });
     }
 
-    sendResponse({ 
+    sendResponse({
       success: true,
       status,
-      summary
+      summary,
     });
   } catch (error) {
-    console.error('Error processing extracted text:', error);
+    console.error("Error processing extracted text:", error);
     sendResponse({ success: false, error: error.message });
   }
 }
@@ -242,16 +312,31 @@ async function handleTextExtraction(message, sender, sendResponse) {
  * Handle tab updates to inject content script if needed
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.url) {
+  if (changeInfo.status === "complete" && tab.url) {
     // Reset detection status for this tab
     activeTabs.delete(tabId);
   }
 });
 
-// Cleanup on extension startup
-chrome.runtime.onStartup.addListener(() => {
-  activeTabs.clear();
-});
+/**
+ * Get user-friendly message for availability status
+ */
+function getAvailabilityMessage(status) {
+  switch (status) {
+    case "readily":
+      return "AI summarization is ready to use";
+    case "after-download":
+      return "AI model will download on first use (~1.5GB)";
+    case "unavailable":
+      return "AI summarization unavailable. Please enable chrome://flags/#optimization-guide-on-device-model and restart Chrome";
+    case "unsupported":
+      return "This browser does not support on-device AI. Please use Chrome 122 or later";
+    case "error":
+      return "Error checking AI availability. Please check browser console";
+    default:
+      return "Checking AI availability...";
+  }
+}
 
 /**
  * Use Chrome's on-device Summarizer API
@@ -259,45 +344,93 @@ chrome.runtime.onStartup.addListener(() => {
  */
 async function summarizeLocally(text) {
   try {
-    if (!('Summarizer' in self)) {
-      return { summary: 'Summarizer API not available in this browser.', status: 'unavailable' };
+    // Re-check availability if not cached
+    if (!summarizerAvailability) {
+      await checkSummarizerAvailability();
     }
 
-    // Check availability; may be 'available', 'unavailable', or 'after-download'
+    // Provide helpful error messages based on availability
+    if (summarizerAvailability === "unsupported") {
+      return {
+        summary:
+          "On-device AI is not supported in this browser. Please use Chrome 122 or later.",
+        status: "unsupported",
+      };
+    }
+
+    if (summarizerAvailability === "unavailable") {
+      return {
+        summary:
+          "On-device AI is not available. Please enable it at chrome://flags/#optimization-guide-on-device-model and restart Chrome.",
+        status: "unavailable",
+      };
+    }
+
+    if (!("Summarizer" in self)) {
+      return {
+        summary:
+          "Summarizer API not available in this browser. Please use Chrome 122 or later.",
+        status: "unavailable",
+      };
+    }
+
+    // Check availability; may be 'readily', 'unavailable', or 'after-download'
     const availability = await self.Summarizer.availability();
-    console.log('[Summarizer] availability:', availability);
+    console.log("[Summarizer] Current availability:", availability);
 
-    if (availability === 'unavailable') {
-      return { summary: 'Summarizer API unavailable on this device or Chrome version.', status: 'unavailable' };
+    if (availability === "unavailable") {
+      return {
+        summary:
+          "Summarizer API unavailable. Please enable chrome://flags/#optimization-guide-on-device-model",
+        status: "unavailable",
+      };
     }
 
-    // Chrome may require a user activation for first use coming from a user gesture
-    if (!navigator.userActivation || !navigator.userActivation.isActive) {
-      console.warn('[Summarizer] No active user gesture; proceeding may fail in some contexts');
-    }
-
-    // If model needs download, Chrome may handle it automatically. We just inform the user.
-    const needsDownload = availability === 'after-download';
+    // If model needs download, inform the user
+    const needsDownload = availability === "after-download";
     if (needsDownload) {
-      console.log('[Summarizer] Model download may be in progress...');
+      console.log(
+        "[Summarizer] Downloading AI model... This may take a few minutes."
+      );
     }
 
     const summarizer = await self.Summarizer.create({
-      type: 'key-points',
-      format: 'markdown',
-      length: 'medium',
-      sharedContext: 'Summarizing Terms of Service for user clarity'
+      type: "key-points",
+      format: "markdown",
+      length: "medium",
+      sharedContext: "Summarizing Terms of Service for user clarity",
     });
 
     const summary = await summarizer.summarize(text, {
-      context: 'Simplify the legal content for a general audience.'
+      context: "Simplify the legal content for a general audience.",
     });
 
-    let status = needsDownload ? 'downloaded' : 'available';
+    // Clean up
+    summarizer.destroy();
+
+    const status = needsDownload ? "downloaded" : "readily";
+
+    // Update cached availability
+    if (needsDownload) {
+      summarizerAvailability = "readily";
+    }
+
     return { summary, status };
   } catch (err) {
-    console.error('[Summarizer] Error summarizing:', err);
-    return { summary: 'Failed to summarize locally: ' + (err?.message || String(err)), status: 'error' };
+    console.error("[Summarizer] Error summarizing:", err);
+
+    // Provide helpful error messages
+    let errorMessage = "Failed to summarize: ";
+    if (err.message && err.message.includes("user activation")) {
+      errorMessage +=
+        "Please click the extension icon in the toolbar and try again.";
+    } else {
+      errorMessage += err?.message || String(err);
+    }
+
+    return {
+      summary: errorMessage,
+      status: "error",
+    };
   }
 }
-
