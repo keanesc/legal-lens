@@ -1,11 +1,5 @@
 // Background Service Worker for ToS Simplifier Extension
-// Handles messages from popup and content script, manages API calls, and coordinates extension logic
-
-// Import API connector
-importScripts('apiConnector.js');
-
-// Initialize API connector
-const apiConnector = new SummarizationAPI();
+// Uses Chrome's on-device Summarizer API (Gemini Nano) to summarize ToS text
 
 // Track active tabs and their ToS detection status
 const activeTabs = new Map();
@@ -95,8 +89,8 @@ async function handleSimplifyRequest(message, sender, sendResponse) {
         return;
       }
 
-      // Call summarization API
-      const summary = await apiConnector.summarize(response.text);
+      // Summarize locally using Summarizer API
+      const { summary, status } = await summarizeLocally(response.text);
       
       // Store summary for later use
       const storedData = {
@@ -111,8 +105,9 @@ async function handleSimplifyRequest(message, sender, sendResponse) {
       });
 
       sendResponse({ 
-        success: true, 
-        summary: summary,
+        success: true,
+        status,
+        summary,
         storedData: storedData
       });
     });
@@ -214,8 +209,8 @@ async function handleTextExtraction(message, sender, sendResponse) {
       return;
     }
 
-    // Summarize the extracted text
-    const summary = await apiConnector.summarize(message.text);
+    // Summarize the extracted text locally
+    const { summary, status } = await summarizeLocally(message.text);
 
     // Store temporarily
     const tabId = sender.tab?.id;
@@ -233,8 +228,9 @@ async function handleTextExtraction(message, sender, sendResponse) {
     }
 
     sendResponse({ 
-      success: true, 
-      summary: summary 
+      success: true,
+      status,
+      summary
     });
   } catch (error) {
     console.error('Error processing extracted text:', error);
@@ -256,4 +252,52 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 chrome.runtime.onStartup.addListener(() => {
   activeTabs.clear();
 });
+
+/**
+ * Use Chrome's on-device Summarizer API
+ * Returns: { summary: string, status: string }
+ */
+async function summarizeLocally(text) {
+  try {
+    if (!('Summarizer' in self)) {
+      return { summary: 'Summarizer API not available in this browser.', status: 'unavailable' };
+    }
+
+    // Check availability; may be 'available', 'unavailable', or 'after-download'
+    const availability = await self.Summarizer.availability();
+    console.log('[Summarizer] availability:', availability);
+
+    if (availability === 'unavailable') {
+      return { summary: 'Summarizer API unavailable on this device or Chrome version.', status: 'unavailable' };
+    }
+
+    // Chrome may require a user activation for first use coming from a user gesture
+    if (!navigator.userActivation || !navigator.userActivation.isActive) {
+      console.warn('[Summarizer] No active user gesture; proceeding may fail in some contexts');
+    }
+
+    // If model needs download, Chrome may handle it automatically. We just inform the user.
+    const needsDownload = availability === 'after-download';
+    if (needsDownload) {
+      console.log('[Summarizer] Model download may be in progress...');
+    }
+
+    const summarizer = await self.Summarizer.create({
+      type: 'key-points',
+      format: 'markdown',
+      length: 'medium',
+      sharedContext: 'Summarizing Terms of Service for user clarity'
+    });
+
+    const summary = await summarizer.summarize(text, {
+      context: 'Simplify the legal content for a general audience.'
+    });
+
+    let status = needsDownload ? 'downloaded' : 'available';
+    return { summary, status };
+  } catch (err) {
+    console.error('[Summarizer] Error summarizing:', err);
+    return { summary: 'Failed to summarize locally: ' + (err?.message || String(err)), status: 'error' };
+  }
+}
 
