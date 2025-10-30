@@ -1,73 +1,77 @@
-# React + TypeScript + Vite
+# Legal Lens
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Legal Lens is a chrome extension that leverages Chrome's built-in AI to help users understand and analyze legal documents more effectively. It provides features such as summarization, key point extraction, and question answering based on the content of the documents.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Before setting up the project, ensure you have the following installed:
 
-## React Compiler
+- [Bun](https://bun.sh/)
+- Node.js
+- Git
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting Started
 
-## Expanding the ESLint configuration
+Follow these steps to set up and run the project locally:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 1. Clone the Repository
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+git clone https://github.com/keanesc/legal-lens.git
+cd legal-lens
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Install Dependencies
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Use Bun to install the project dependencies:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+bun install
 ```
+
+### 3. Build the Extension
+
+```bash
+bun run build
+```
+
+The build output will be located in the `dist` directory.
+
+### 4. Load the Extension in Your Browser
+
+To load the extension in your browser, follow these steps:
+
+1. Open your browser and navigate to the extensions page (e.g., `chrome://extensions/` for Chrome).
+2. Enable "Developer mode" (usually found in the top right corner).
+3. Click on "Load unpacked" and select the `dist` directory from the project
+   root.
+
+## Project Structure
+
+- `src/`: Contains the source code of the application.
+- `public/`: Static assets such as icons and the manifest file.
+- `dist/`: Generated production build files.
+- `package.json`: Project metadata and scripts.
+- `vite.config.ts`: Vite configuration file.
+- `tsconfig.json`: TypeScript configuration file.
+
+## Scripts
+
+- `bun run lint`: Run ESLint to check for code quality issues.
+
+## Dependencies
+
+This project uses the following key dependencies:
+
+- **React**: A JavaScript library for building user interfaces.
+- **TypeScript**: A strongly typed programming language that builds on JavaScript.
+- **Tailwind CSS**: A utility-first CSS framework for styling.
+- **Lucide React**: A library of customizable icons for React.
+
+## License
+
+This project is licensed under the GNU GPLv3 License. See the `LICENSE` file for details.
+
+## Contributing
+
+Contributions are welcome! Feel free to open issues or submit pull requests to improve the project.
