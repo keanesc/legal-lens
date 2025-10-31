@@ -1,178 +1,207 @@
-# ToS Simplifier Chrome Extension
+# Legal Lens — Chrome Extension
 
-A Chrome Extension that automatically detects and summarizes Terms of Service (ToS) popups on websites using Chrome's built-in AI (Gemini Nano).
+**Legal Lens** is a Chrome Extension that automatically detects and summarizes website **Terms of Service (ToS)** pop-ups using **Chrome’s on-device Gemini Nano AI**.  
+It helps users quickly understand complex legal language while keeping all processing fully local and private.
+
+---
 
 ## Features
 
-- 🤖 **Automatic Detection**: Uses MutationObserver to detect ToS popups in real-time
-- ✨ **On-Device AI Summarization**: Uses Chrome's built-in Gemini Nano to simplify complex legal language locally
-- 🔒 **Privacy-Focused**: All summarization happens on your device - no data sent to external servers
-- 💾 **Save & Compare**: Save ToS summaries and compare them across different websites
-- 🎯 **Smart Injection**: Automatically injects "Explain" buttons next to detected ToS popups
+- **Automatic Detection**  
+  Detects ToS and Privacy Policy pop-ups in real time using `MutationObserver`.
+
+- **On-Device AI Summarization**  
+  Simplifies ToS text locally using Chrome’s **Gemini Nano Summarizer API** — no data ever leaves your device.
+
+- **Privacy by Design**  
+  100% local processing, no external servers or API calls.
+
+- **Save & Compare**  
+  Save summaries and compare them across websites to identify changes.
+
+- **Smart UI Injection**  
+  Adds an “Explain Terms” button automatically near detected ToS content.
+
+---
 
 ## Requirements
 
-- **Chrome 122 or later** (released February 2024)
-- **Gemini Nano enabled** via Chrome flags
-- **Sufficient disk space** for on-device AI model (~1.5GB)
+| Requirement         | Details                            |
+|---------------------|------------------------------------|
+| **Chrome Version**  | 122 or later (February 2024+)      |
+| **Gemini Nano**     | Must be enabled via Chrome flags   |
+| **Disk Space**      | ~1.5 GB for the on-device AI model |
+
+---
 
 ## Project Structure
 
-```text
+```
 tos-simplifier-extension/
-├── manifest.json          # Extension manifest (Manifest V3)
-├── background.js          # Service worker for background tasks
-├── contentScript.js       # Content script for ToS detection
+├── manifest.json # Manifest V3 configuration
+├── background.js # Background service worker
+├── contentScript.js # Detects and extracts ToS pop-ups
 ├── popup/
-│   ├── popup.html         # Popup UI
-│   ├── popup.js           # Popup logic
-│   └── popup.css          # Popup styles
-├── icons/                 # Extension icons (16x16, 48x48, 128x128)
-└── README.md             # This file
+│ ├── popup.html # Popup UI
+│ ├── popup.js # Popup logic
+│ └── popup.css # Popup styles
+├── icons/ # Extension icons (16x16, 48x48, 128x128)
+└── README.md # Documentation
 ```
 
-## Setup Instructions
+---
 
-### 1. Enable Chrome's On-Device AI
+## Setup Guide
 
-Before installing the extension, you need to enable Chrome's built-in AI features:
+### 1. Enable On-Device AI in Chrome
 
-1. **Update Chrome**: Make sure you're running Chrome 122 or later (check at `chrome://settings/help`)
-2. **Enable the feature flag**:
-   - Go to `chrome://flags/#optimization-guide-on-device-model`
-   - Set it to **Enabled BypassPerfRequirement**
-   - Restart Chrome
-3. **Download the AI model**:
-   - The Gemini Nano model will download automatically when first used
-   - This requires ~1.5GB of disk space
-   - You can check download status at `chrome://components/` (look for "Optimization Guide On Device Model")
+1. **Update Chrome** to version 122 or later  
+   → Go to `chrome://settings/help`
+2. **Enable the Optimization Guide flag**  
+   → chrome://flags/#optimization-guide-on-device-model
 
-### 2. Create Icons
+   Set to **Enabled BypassPerfRequirement**  
+Restart Chrome afterward.
+3. **Verify Model Download**  
+Open `chrome://components/` → find **Optimization Guide On Device Model** → confirm status.
 
-You need to create three icon files in the `icons/` directory:
+---
 
-- `icon16.png` (16x16 pixels)
-- `icon48.png` (48x48 pixels)
-- `icon128.png` (128x128 pixels)
+### 2. Prepare Icons
 
-You can use any icon design tool or online icon generator. The icons should represent the extension's purpose (e.g., a document with a checkmark or a simplified text icon).
+Create the following icons inside the `icons/` folder:
 
-### 3. Load Extension in Chrome
+| File Name     | Size       |
+|---------------|------------|
+| `icon16.png`  | 16×16 px   |
+| `icon48.png`  | 48×48 px   |
+| `icon128.png` | 128×128 px |
 
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable "Developer mode" (toggle in top-right)
-3. Click "Load unpacked"
-4. Select the extension directory
-5. The extension should now be installed!
+Use an icon that represents document simplification (e.g., a document with a checkmark).
+
+---
+
+### 3. Load the Extension in Chrome
+
+1. Go to `chrome://extensions/`
+2. Enable **Developer mode**
+3. Click **Load unpacked**
+4. Select your `tos-simplifier-extension/` directory
+
+The extension will now appear in your Chrome toolbar.
+
+---
 
 ## Usage
 
-1. **Automatic Detection**: Visit any website with a ToS popup. The extension will automatically detect it.
+1. Visit any website showing a Terms of Service or Privacy Policy pop-up.  
+2. The extension automatically detects ToS content and displays an **“Explain Terms”** button.  
+3. Click the button or open the extension popup → click **Simplify**.  
+4. Review the summary and optionally **Save** it for comparison with future ToS versions.
 
-2. **Simplify Terms**:
-   - Click the extension icon in the toolbar
-   - Click "Simplify" button
-   - The extension will extract and summarize the ToS text using on-device AI
+---
 
-3. **Save**: Click "Save" to store the summary for later reference
+## Technical Overview
 
-4. **Compare**: Click "Compare" to see differences between current and saved ToS documents
+### On-Device Summarization
 
-5. **Explain Button**: When a ToS popup is detected, an "Explain Terms" button will appear. Click it to get an instant summary.
+- Powered by **Gemini Nano (Chrome Summarizer API)**
+- Works entirely offline after the model download
+- Summaries generated in 1–3 seconds
+- No external data transfer or API key needed
 
-## How It Works
-
-This extension uses **Chrome's built-in Summarizer API** (powered by Gemini Nano) to generate summaries entirely on your device. No data is sent to external servers, ensuring your privacy.
-
-The Summarizer API:
-
-- Runs completely offline after initial model download
-- Uses ~1.5GB of disk space for the AI model
-- Generates summaries in 1-3 seconds
-- Respects Chrome's built-in safety filters
-
-## Technical Details
-
-### Manifest V3 Compliance
-
-- Uses service worker instead of background page
-- Proper permissions: `activeTab`, `scripting`, `storage`
-- Host permissions: `<all_urls>` for content script injection
+---
 
 ### ToS Detection Algorithm
 
-- Uses MutationObserver to watch for DOM changes
-- Searches for common keywords: "terms", "privacy", "cookie", etc.
-- Checks for modal/popup structures (high z-index, overlay classes)
-- Requires minimum text length (50 characters)
+- Observes DOM changes with `MutationObserver`
+- Searches for keywords such as:
+- *terms*, *privacy*, *cookies*, *agreement*, *policy*
+- Detects pop-ups by analyzing modal and overlay structures (`z-index`, opacity, etc.)
+- Requires a minimum text length (50+ characters) to trigger summarization
+
+---
 
 ### Message Passing
 
-- `popup.js` ↔ `background.js`: User actions
-- `contentScript.js` ↔ `background.js`: ToS detection and text extraction
-- Uses `chrome.runtime.sendMessage()` and `chrome.runtime.onMessage.addListener()`
+| From               | To              | Purpose                                               |
+|--------------------|-----------------|-------------------------------------------------------|
+| `popup.js`         | `background.js` | Handles user interactions                             |
+| `contentScript.js` | `background.js` | Sends extracted ToS text                              |
+|                    |                 | Uses `chrome.runtime.sendMessage()` for communication |
 
-### Storage
+---
 
-- Uses `chrome.storage.local` for:
-  - Current tab ToS data: `tos_${tabId}`
-  - Saved ToS list: `saved_tos_list`
-- No API keys required (uses on-device AI)
+### 💾 Storage Schema
 
-## Browser Compatibility
+| Key           | Description                                |
+|---------------|--------------------------------------------|
+| `tos_<tabId>` | Current tab’s ToS summary |
+| `saved_tos_list` | List of stored summaries for comparison |
 
-- **Chrome 122+** (required for Summarizer API)
-- **Chromium 122+** (if Gemini Nano support is enabled)
-- Edge and other Chromium browsers may work if they support the Summarizer API
+All data is stored locally using `chrome.storage.local`.
 
-## Development
+---
 
-### Testing
+## 🧪 Development & Debugging
 
-1. Load extension in developer mode
-2. Open browser console to see logs
-3. Visit test sites with ToS popups
-4. Check background script logs: `chrome://extensions/` → Details → Service Worker
+### Viewing Logs
 
-### Debugging
+| Location | How to Access |
+|-----------|---------------|
+| **Content Script** | DevTools → Console (on webpage) |
+| **Background Service Worker** | `chrome://extensions/` → *Details* → *Inspect service worker* |
+| **Popup** | Right-click the popup → *Inspect* |
 
-- Content script logs: Open DevTools on the webpage
-- Background script logs: Service Worker console
-- Popup logs: Right-click popup → Inspect
+### Recommended Workflow
 
-## Troubleshooting
+1. Load the extension in **Developer mode**.  
+2. Open DevTools on a site with a ToS popup.  
+3. Check the console for detection and summarization logs.  
 
-**"Summarizer API unavailable"**
+---
 
-- Make sure you're using Chrome 122 or later
-- Enable the flag at `chrome://flags/#optimization-guide-on-device-model`
-- Restart Chrome and wait for the model to download
-- Check `chrome://components/` for "Optimization Guide On Device Model" status
+## 🩺 Troubleshooting
 
-**"No ToS text found on page"**
+**Issue:** “Summarizer API unavailable”  
+- Ensure Chrome 122+ is installed  
+- Enable the Optimization Guide flag  
+- Wait for model download (`chrome://components/`)  
 
-- The extension looks for common ToS patterns
-- Some custom popups may not be detected automatically
-- Try clicking the extension icon and manually clicking "Simplify"
+**Issue:** “No ToS text found”  
+- Some websites use custom frameworks.  
+- Try clicking **Simplify** manually from the popup.
 
-**Extension not working after update**
+**Extension not responding after update**  
+- Reload the extension via `chrome://extensions/`  
+- Check background logs for errors  
+- Clear local storage if needed
 
-- Reload the extension at `chrome://extensions/`
-- Check the service worker console for errors
-- Clear extension storage and try again
+---
 
-## License
+## ⚖️ License
 
-MIT License - Feel free to use and modify as needed.
+Licensed under the **MIT License**.  
+You are free to use, modify, and distribute this extension with attribution.
 
-## Contributing
+---
 
-Contributions welcome! Areas for improvement:
+## 🤝 Contributing
 
-- Better ToS detection algorithms
-- UI/UX enhancements
-- Options page for configuration
-- Export/import saved summaries
-- Diff view for ToS comparisons
+Contributions are welcome!  
+Areas for improvement include:
 
+- Smarter ToS detection (NLP or ML-based)  
+- Enhanced UI/UX for summaries  
+- Options page for customization  
+- Export/Import features for stored summaries  
+- Rich diff visualization for ToS comparisons
 
+---
+
+**Author:** _Your Name_  
+**Version:** 1.0.0  
+**License:** MIT  
+**Repository:** [GitHub Link Here]
+
+---
