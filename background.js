@@ -483,7 +483,10 @@ async function summarizeLocally(text) {
     const availability = await self.Summarizer.availability();
     console.log("[Summarizer] Current availability:", availability);
     if (availability === "unavailable") {
-      return { summary: "Summarizer model unavailable.", status: "unavailable" };
+      return {
+        summary: "Summarizer model unavailable.",
+        status: "unavailable",
+      };
     }
 
     const needsDownload =
@@ -503,7 +506,7 @@ async function summarizeLocally(text) {
       while (start < textLen) {
         let end = start + maxLength;
         if (end < textLen) {
-          const boundary = fullText.lastIndexOf('.', end);
+          const boundary = fullText.lastIndexOf(".", end);
           end = boundary > start ? boundary + 1 : end;
         } else {
           end = textLen;
@@ -519,11 +522,15 @@ async function summarizeLocally(text) {
     const summarizeChunksRecursively = async (model, inputText, depth = 0) => {
       const MAX_DEPTH = 8;
       if (depth > MAX_DEPTH) {
-        console.warn('[Summarizer] Max recursion depth reached. Returning last level text.');
+        console.warn(
+          "[Summarizer] Max recursion depth reached. Returning last level text."
+        );
         return inputText.slice(0, MAX_LENGTH);
       }
       if (inputText.length <= MAX_LENGTH) {
-        return await model.summarize(inputText, { context: 'Summarize for a general audience.' });
+        return await model.summarize(inputText, {
+          context: "Summarize for a general audience.",
+        });
       }
       const chunks = splitText(inputText, MAX_LENGTH, OVERLAP);
       const partials = [];
@@ -531,7 +538,7 @@ async function summarizeLocally(text) {
         const partSummary = await model.summarize(chunk);
         partials.push(partSummary);
       }
-      const combined = partials.join('\n');
+      const combined = partials.join("\n");
       return await summarizeChunksRecursively(model, combined, depth + 1);
     };
 
@@ -710,10 +717,12 @@ async function summarizeLocally(text) {
       });
 
       const summary = await summarizeChunksRecursively(summarizer, text);
-      const status = 'readily';
+      const status = "readily";
       return { summary, status };
     } finally {
-      try { summarizer && summarizer.destroy && summarizer.destroy(); } catch (_) {}
+      try {
+        summarizer && summarizer.destroy && summarizer.destroy();
+      } catch (_) {}
     }
   } catch (err) {
     console.error("[Summarizer] Error summarizing:", err);

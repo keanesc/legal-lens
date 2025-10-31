@@ -3,14 +3,8 @@
   "name": "ToS Simplifier",
   "version": "1.0.0",
   "description": "Automatically detects and summarizes Terms of Service popups using AI",
-  "permissions": [
-    "activeTab",
-    "scripting",
-    "storage"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
   },
@@ -41,4 +35,3 @@
     }
   ]
 }
-

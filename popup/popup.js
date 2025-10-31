@@ -64,13 +64,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Listen for model download progress
   chrome.runtime.onMessage.addListener((message) => {
-    if (message && message.type === 'MODEL_PROGRESS') {
+    if (message && message.type === "MODEL_PROGRESS") {
       const { loaded = 0, total = 0 } = message;
       if (total > 0) {
         const pct = Math.floor((loaded / total) * 100);
-        updateStatus(`Downloading on-device model... ${pct}%`, 'processing');
+        updateStatus(`Downloading on-device model... ${pct}%`, "processing");
       } else {
-        updateStatus('Preparing on-device model...', 'processing');
+        updateStatus("Preparing on-device model...", "processing");
       }
     }
   });
