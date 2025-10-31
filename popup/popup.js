@@ -812,8 +812,29 @@ async function initializeChatbot() {
     const result = await chrome.storage.local.get([`tos_${currentTabId}`]);
     const tosData = result[`tos_${currentTabId}`];
 
-    if (tosData && tosData.tosText) {
-      documentContext = tosData.tosText;
+    console.log("[Chatbot] ToS data retrieved:", tosData);
+
+    if (
+      tosData &&
+      (tosData.fullText || tosData.summary || tosData.originalText)
+    ) {
+      // Use fullText first (for chatbot), fall back to summary or originalText
+      documentContext =
+        tosData.fullText || tosData.summary || tosData.originalText || "";
+
+      if (!documentContext) {
+        addChatMessage(
+          "assistant",
+          "Please simplify a document first so I can answer questions about it.",
+          true
+        );
+        return;
+      }
+
+      console.log(
+        "[Chatbot] Document context loaded, length:",
+        documentContext.length
+      );
     } else {
       // No document loaded, show message
       addChatMessage(

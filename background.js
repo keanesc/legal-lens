@@ -223,7 +223,8 @@ async function handleSimplifyRequest(message, sender, sendResponse) {
         // Store summary for later use
         const storedData = {
           url: response.url,
-          originalText: response.text.substring(0, 500), // Store first 500 chars
+          originalText: response.text.substring(0, 500), // Store first 500 chars for display
+          fullText: response.text, // Store full text for chatbot
           summary: summary,
           timestamp: Date.now(),
           source: response.source || "unknown",
