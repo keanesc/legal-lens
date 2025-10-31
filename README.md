@@ -62,7 +62,7 @@ legal-lens-extension/
 
 ### 1. Enable On-Device AI in Chrome
 
-1. **Update Chrome** to version 122 or later  
+1. **Update Chrome** to version 138 or later  
    → Go to `chrome://settings/help`
 2. **Enable the Optimization Guide flag**  
    → chrome://flags/#optimization-guide-on-device-model
