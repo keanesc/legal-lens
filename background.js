@@ -254,46 +254,89 @@ chrome.runtime.onStartup.addListener(() => {
 });
 
 /**
- * Use Chrome's on-device Summarizer API
+ * Use Chrome's on-device Summarizer API with recursive chunking.
  * Returns: { summary: string, status: string }
  */
 async function summarizeLocally(text) {
   try {
     if (!('Summarizer' in self)) {
-      return { summary: 'Summarizer API not available in this browser.', status: 'unavailable' };
+      console.warn('Summarizer API not supported in this browser.');
+      return { summary: 'Summarizer not available.', status: 'unavailable' };
     }
 
-    // Check availability; may be 'available', 'unavailable', or 'after-download'
     const availability = await self.Summarizer.availability();
     console.log('[Summarizer] availability:', availability);
-
-    if (availability === 'unavailable') {
-      return { summary: 'Summarizer API unavailable on this device or Chrome version.', status: 'unavailable' };
+    if (availability !== 'available' && availability !== 'downloadable' && availability !== 'after-download') {
+      console.warn('Summarizer model not ready.');
+      return { summary: 'Summarizer model unavailable.', status: 'unavailable' };
     }
 
-    // Chrome may require a user activation for first use coming from a user gesture
-    if (!navigator.userActivation || !navigator.userActivation.isActive) {
-      console.warn('[Summarizer] No active user gesture; proceeding may fail in some contexts');
-    }
-
-    // If model needs download, Chrome may handle it automatically. We just inform the user.
-    const needsDownload = availability === 'after-download';
-    if (needsDownload) {
-      console.log('[Summarizer] Model download may be in progress...');
-    }
+    // Monitor model download progress if applicable
+    const monitor = (m) => {
+      try {
+        m.addEventListener('downloadprogress', (e) => {
+          const loaded = e?.loaded || 0;
+          const total = e?.total || 0;
+          chrome.runtime.sendMessage({ type: 'MODEL_PROGRESS', loaded, total });
+        });
+      } catch (_) {}
+    };
 
     const summarizer = await self.Summarizer.create({
-      type: 'key-points',
-      format: 'markdown',
-      length: 'medium',
-      sharedContext: 'Summarizing Terms of Service for user clarity'
+      type: 'tldr',
+      format: 'plain-text',
+      length: 'long',
+      sharedContext: 'Summarizing legal Terms of Service text for clarity.',
+      monitor
     });
 
-    const summary = await summarizer.summarize(text, {
-      context: 'Simplify the legal content for a general audience.'
-    });
+    // Determine safe maximum characters per chunk based on inputQuota (tokens)
+    // Approximate: 1 token ~ 4 chars on average; use conservative 1 token ~ 3 chars
+    const quotaTokens = Number(summarizer.inputQuota || 3000);
+    const MAX_LENGTH = Math.max(1000, Math.floor(quotaTokens * 3));
+    const OVERLAP = 200;
 
-    let status = needsDownload ? 'downloaded' : 'available';
+    const splitText = (fullText, maxLength = MAX_LENGTH, overlap = OVERLAP) => {
+      const chunks = [];
+      let start = 0;
+      const textLen = fullText.length;
+      while (start < textLen) {
+        let end = start + maxLength;
+        if (end < textLen) {
+          const boundary = fullText.lastIndexOf('.', end);
+          end = boundary > start ? boundary + 1 : end;
+        } else {
+          end = textLen;
+        }
+        const chunk = fullText.slice(start, end).trim();
+        if (chunk) chunks.push(chunk);
+        if (end >= textLen) break;
+        start = Math.max(0, end - overlap);
+      }
+      return chunks;
+    };
+
+    const summarizeChunksRecursively = async (model, inputText, depth = 0) => {
+      const MAX_DEPTH = 8; // safety cap to avoid infinite recursion
+      if (depth > MAX_DEPTH) {
+        console.warn('[Summarizer] Max recursion depth reached. Returning last level text.');
+        return inputText.slice(0, MAX_LENGTH);
+      }
+      if (inputText.length <= MAX_LENGTH) {
+        return await model.summarize(inputText, { context: 'Summarize for a general audience.' });
+      }
+      const chunks = splitText(inputText, MAX_LENGTH, OVERLAP);
+      const partials = [];
+      for (const chunk of chunks) {
+        const partSummary = await model.summarize(chunk);
+        partials.push(partSummary);
+      }
+      const combined = partials.join('\n');
+      return await summarizeChunksRecursively(model, combined, depth + 1);
+    };
+
+    const summary = await summarizeChunksRecursively(summarizer, text);
+    const status = availability === 'downloadable' || availability === 'after-download' ? 'downloaded' : 'available';
     return { summary, status };
   } catch (err) {
     console.error('[Summarizer] Error summarizing:', err);
