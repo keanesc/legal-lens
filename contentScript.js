@@ -55,6 +55,19 @@ const DETECTION_CONFIG = {
 
   // Minimum text length for a fetched ToS document
   minTosDocumentLength: 500,
+
+  // Exclude elements with these classes/IDs (common false positives)
+  excludeSelectors: [
+    '[class*="ad-"]',
+    '[class*="advertisement"]',
+    '[id*="ad-"]',
+    '[id*="advertisement"]',
+    '[class*="video-ad"]',
+    '[class*="promo"]',
+    '[class*="banner"]',
+    ".ytp-ad-overlay-container", // YouTube ads
+    ".video-ads", // Generic video ads
+  ],
 };
 
 // Track detected ToS elements
@@ -158,6 +171,9 @@ function checkForTosPopup(element) {
   if (!element || typeof element.querySelector !== "function") return;
   if (detectedElements.has(element)) return;
 
+  // Check if element should be excluded (ads, banners, etc.)
+  if (shouldExcludeElement(element)) return;
+
   // Check if element is visible
   if (!isElementVisible(element)) return;
 
@@ -176,7 +192,9 @@ function checkForTosPopup(element) {
   // Check text length
   const hasEnoughText = text.trim().length >= DETECTION_CONFIG.minTextLength;
 
-  if ((hasKeyword || isModalStructure) && hasEnoughText) {
+  // MUST have ToS keywords AND (modal structure OR enough text)
+  // This prevents false positives from random modals/overlays
+  if (hasKeyword && (isModalStructure || hasEnoughText)) {
     // Found a potential ToS popup
     handleTosDetection(element);
     detectedElements.add(element);
@@ -188,6 +206,30 @@ function checkForTosPopup(element) {
       textPreview: text.substring(0, 200),
     });
   }
+}
+
+/**
+ * Check if element should be excluded from detection
+ */
+function shouldExcludeElement(element) {
+  // Check if element matches any exclude selectors
+  for (const selector of DETECTION_CONFIG.excludeSelectors) {
+    try {
+      if (element.matches(selector)) {
+        console.log("Excluded element (matches exclude selector):", selector);
+        return true;
+      }
+      // Also check if element is inside an excluded container
+      if (element.closest(selector)) {
+        console.log("Excluded element (inside excluded container):", selector);
+        return true;
+      }
+    } catch (e) {
+      // Invalid selector, skip
+      continue;
+    }
+  }
+  return false;
 }
 
 /**

@@ -521,24 +521,33 @@ header h1 {
   width: 70%;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling - appears only on hover */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f8f9fa;
+  background: transparent;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #ced4da;
+  background: transparent;
   border-radius: 4px;
   transition: background 0.3s ease;
 }
 
+/* Show scrollbar on hover */
+*:hover::-webkit-scrollbar-thumb {
+  background: #ced4da;
+}
+
+*:hover::-webkit-scrollbar-track {
+  background: #f8f9fa;
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #adb5bd;
+  background: #adb5bd !important;
 }
 
 /* Smooth transitions */
