@@ -5,8 +5,9 @@
  * Configuration for ToS detection
  */
 const DETECTION_CONFIG = {
-  // Keywords to look for in ToS popups
+  // Keywords to look for in ToS popups (multilingual)
   keywords: [
+    // English
     "terms of service",
     "terms and conditions",
     "privacy policy",
@@ -18,6 +19,91 @@ const DETECTION_CONFIG = {
     "agree and continue",
     "privacy notice",
     "terms of use",
+    "terms & conditions",
+    "data protection",
+
+    // Spanish
+    "términos de servicio",
+    "términos y condiciones",
+    "política de privacidad",
+    "política de cookies",
+    "acuerdo de usuario",
+    "acepto los términos",
+    "aceptar términos",
+    "estoy de acuerdo",
+    "aviso de privacidad",
+    "condiciones de uso",
+    "términos del servicio",
+    "protección de datos",
+
+    // French
+    "conditions d'utilisation",
+    "conditions générales",
+    "politique de confidentialité",
+    "politique de cookies",
+    "accord utilisateur",
+    "accepter les conditions",
+    "j'accepte",
+    "avis de confidentialité",
+    "conditions de service",
+    "protection des données",
+
+    // German
+    "nutzungsbedingungen",
+    "allgemeine geschäftsbedingungen",
+    "datenschutzerklärung",
+    "cookie-richtlinie",
+    "benutzervereinbarung",
+    "bedingungen akzeptieren",
+    "ich stimme zu",
+    "datenschutzhinweis",
+    "nutzungsbestimmungen",
+    "agb",
+    "datenschutz",
+
+    // Italian
+    "termini di servizio",
+    "termini e condizioni",
+    "informativa sulla privacy",
+    "politica dei cookie",
+    "accetto i termini",
+    "protezione dei dati",
+
+    // Portuguese
+    "termos de serviço",
+    "termos e condições",
+    "política de privacidade",
+    "política de cookies",
+    "acordo de usuário",
+    "aceitar termos",
+    "proteção de dados",
+
+    // Dutch
+    "gebruiksvoorwaarden",
+    "privacybeleid",
+    "cookiebeleid",
+    "gebruikersovereenkomst",
+
+    // Polish
+    "warunki korzystania",
+    "polityka prywatności",
+    "polityka cookies",
+
+    // Russian
+    "условия использования",
+    "политика конфиденциальности",
+    "пользовательское соглашение",
+
+    // Japanese
+    "利用規約",
+    "プライバシーポリシー",
+    "サービス利用規約",
+
+    // Chinese (Simplified)
+    "服务条款",
+    "隐私政策",
+    "用户协议",
+    "使用条款",
   ],
 
   // Selectors that commonly contain ToS popups
@@ -34,8 +120,9 @@ const DETECTION_CONFIG = {
     '[role="dialog"]',
   ],
 
-  // Link keywords to find ToS pages
+  // Link keywords to find ToS pages (multilingual)
   linkKeywords: [
+    // English
     "terms of service",
     "terms and conditions",
     "terms of use",
@@ -48,6 +135,70 @@ const DETECTION_CONFIG = {
     "tos",
     "terms",
     "privacy",
+    "data protection",
+
+    // Spanish
+    "términos",
+    "condiciones",
+    "privacidad",
+    "cookies",
+    "legal",
+    "términos de servicio",
+    "política de privacidad",
+    "aviso legal",
+    "protección de datos",
+
+    // French
+    "conditions",
+    "confidentialité",
+    "mentions légales",
+    "politique",
+    "données personnelles",
+    "cgu",
+    "cgv",
+
+    // German
+    "bedingungen",
+    "nutzungsbedingungen",
+    "datenschutz",
+    "impressum",
+    "agb",
+    "rechtliches",
+
+    // Italian
+    "termini",
+    "condizioni",
+    "privacy",
+    "informativa",
+    "legale",
+
+    // Portuguese
+    "termos",
+    "condições",
+    "privacidade",
+    "jurídico",
+
+    // Dutch
+    "voorwaarden",
+    "privacy",
+    "juridisch",
+
+    // Polish
+    "warunki",
+    "prywatność",
+
+    // Russian
+    "условия",
+    "конфиденциальность",
+
+    // Japanese
+    "規約",
+    "プライバシー",
+
+    // Chinese
+    "条款",
+    "隐私",
+    "协议",
   ],
 
   // Minimum text length to consider as ToS
@@ -965,10 +1116,11 @@ function verifyTosDocument(html, url) {
       };
     }
 
-    // Count ToS-related keywords in the document
+    // Count ToS-related keywords in the document (multilingual)
     const textLower = text.toLowerCase();
     let keywordMatches = 0;
     const legalTerms = [
+      // English legal terms
       "terms of service",
       "terms and conditions",
       "privacy policy",
@@ -984,6 +1136,77 @@ function verifyTosDocument(html, url) {
       "license",
       "prohibited",
       "consent",
+      "indemnification",
+      "arbitration",
+
+      // Spanish legal terms
+      "términos de servicio",
+      "condiciones",
+      "política de privacidad",
+      "acuerdo",
+      "responsabilidad",
+      "garantía",
+      "propiedad intelectual",
+      "conducta del usuario",
+      "terminación",
+      "ley aplicable",
+      "renuncia",
+      "derechos de autor",
+      "licencia",
+      "prohibido",
+      "consentimiento",
+
+      // French legal terms
+      "conditions d'utilisation",
+      "politique de confidentialité",
+      "accord",
+      "responsabilité",
+      "garantie",
+      "propriété intellectuelle",
+      "résiliation",
+      "loi applicable",
+      "clause de non-responsabilité",
+      "droits d'auteur",
+      "interdit",
+      "consentement",
+
+      // German legal terms
+      "nutzungsbedingungen",
+      "datenschutzerklärung",
+      "vereinbarung",
+      "haftung",
+      "gewährleistung",
+      "geistiges eigentum",
+      "kündigung",
+      "anwendbares recht",
+      "haftungsausschluss",
+      "urheberrecht",
+      "verboten",
+      "einwilligung",
+
+      // Italian legal terms
+      "termini di servizio",
+      "accordo",
+      "responsabilità",
+      "garanzia",
+      "proprietà intellettuale",
+      "risoluzione",
+
+      // Portuguese legal terms
+      "termos de serviço",
+      "acordo",
+      "responsabilidade",
+      "garantia",
+      "propriedade intelectual",
+      "rescisão",
+
+      // Common legal concepts (appear in many languages)
+      "eula",
+      "gdpr",
+      "ccpa",
+      "cookies",
+      "gdpr",
+      "rgpd", // French/Spanish GDPR
     ];
 
     for (const term of legalTerms) {
