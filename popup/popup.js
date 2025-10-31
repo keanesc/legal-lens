@@ -180,21 +180,33 @@ function attachEventListeners() {
   simplifyBtn.addEventListener("click", handleSimplify);
   saveBtn.addEventListener("click", handleSave);
   compareBtn.addEventListener("click", handleCompare);
-  chatBtn.addEventListener("click", handleChatToggle);
+
+  if (chatBtn) {
+    chatBtn.addEventListener("click", handleChatToggle);
+    console.log("[Popup] Chat button event listener attached");
+  } else {
+    console.error("[Popup] Chat button not found in DOM");
+  }
 
   // Chatbot event listeners
   const sendChatBtn = document.getElementById("sendChatBtn");
   const chatbotInput = document.getElementById("chatbotInput");
   const closeChatBtn = document.getElementById("closeChatBtn");
 
-  sendChatBtn.addEventListener("click", handleSendMessage);
-  chatbotInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  });
-  closeChatBtn.addEventListener("click", handleChatToggle);
+  if (sendChatBtn) {
+    sendChatBtn.addEventListener("click", handleSendMessage);
+  }
+  if (chatbotInput) {
+    chatbotInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+      }
+    });
+  }
+  if (closeChatBtn) {
+    closeChatBtn.addEventListener("click", handleChatToggle);
+  }
 }
 
 /**
@@ -721,14 +733,45 @@ let documentContext = "";
  * Toggle chatbot section visibility
  */
 function handleChatToggle() {
+  console.log("[Popup] handleChatToggle called");
   const chatbotSection = document.getElementById("chatbotSection");
   const savedSection = document.getElementById("savedSection");
+  const resultSection = document.getElementById("resultSection");
+  const contentScrollArea = document.querySelector(".content-scroll-area");
   const chatBtn = document.getElementById("chatBtn");
 
-  if (chatbotSection.style.display === "none") {
+  if (!chatbotSection) {
+    console.error("[Popup] chatbotSection not found!");
+    return;
+  }
+
+  // Check if chatbot is currently hidden
+  const isHidden =
+    chatbotSection.style.display === "none" ||
+    chatbotSection.style.display === "";
+
+  console.log(
+    "[Popup] Chatbot isHidden:",
+    isHidden,
+    "display:",
+    chatbotSection.style.display
+  );
+
+  if (isHidden) {
+    // Show chatbot
+    console.log("[Popup] Showing chatbot");
+
+    // Make sure the content scroll area is visible
+    if (contentScrollArea) {
+      contentScrollArea.classList.add("has-content");
+    }
+
+    // Hide other sections
+    if (savedSection) savedSection.style.display = "none";
+    if (resultSection) resultSection.style.display = "none";
+
     // Show chatbot
     chatbotSection.style.display = "flex";
-    savedSection.style.display = "none";
     chatBtn.classList.add("active");
 
     // Initialize chatbot if needed
@@ -737,11 +780,26 @@ function handleChatToggle() {
     }
 
     // Focus input
-    document.getElementById("chatbotInput").focus();
+    setTimeout(() => {
+      const input = document.getElementById("chatbotInput");
+      if (input) input.focus();
+    }, 100);
   } else {
     // Hide chatbot
+    console.log("[Popup] Hiding chatbot");
     chatbotSection.style.display = "none";
     chatBtn.classList.remove("active");
+
+    // Show result section if it has content
+    if (
+      resultSection &&
+      resultSection.querySelector(".summary-content")?.textContent
+    ) {
+      resultSection.style.display = "block";
+    } else if (contentScrollArea) {
+      // Hide content area if no other content
+      contentScrollArea.classList.remove("has-content");
+    }
   }
 }
 
