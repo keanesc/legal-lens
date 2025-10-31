@@ -53,6 +53,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Attach event listeners
   attachEventListeners();
 
+  // Listen for download progress updates
+  setupDownloadProgressListener();
+
   // Check API availability
   await checkApiAvailability();
 
@@ -74,7 +77,11 @@ async function checkApiAvailability() {
       ) {
         updateStatus(response.message, "error");
         showError(response.message);
-      } else if (response.availability === "after-download") {
+      } else if (
+        response.availability === "after-download" ||
+        response.availability === "downloadable" ||
+        response.availability === "downloading"
+      ) {
         updateStatus(response.message, "processing");
       } else {
         updateStatus("Ready", "ready");
@@ -99,6 +106,79 @@ function attachEventListeners() {
 }
 
 /**
+ * Setup listener for download progress updates from background script
+ */
+function setupDownloadProgressListener() {
+  console.log("[Popup] Setting up download progress listener");
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log("[Popup] Received message:", message);
+    if (message.type === "DOWNLOAD_PROGRESS") {
+      console.log(
+        `[Popup] Download progress: ${message.percent}%, status: ${message.status}`
+      );
+      updateDownloadProgress(message.percent, message.status);
+      sendResponse({ received: true });
+    }
+    return true;
+  });
+}
+
+/**
+ * Update download progress UI
+ */
+function updateDownloadProgress(percent, status) {
+  console.log(
+    `[Popup] updateDownloadProgress called: ${percent}%, status: ${status}`
+  );
+
+  const progressSection = document.getElementById("progressSection");
+  const progressBar = document.getElementById("progressBar");
+  const progressPercent = document.getElementById("progressPercent");
+  const progressStatus = document.getElementById("progressStatus");
+
+  console.log("[Popup] Progress elements:", {
+    progressSection: !!progressSection,
+    progressBar: !!progressBar,
+    progressPercent: !!progressPercent,
+    progressStatus: !!progressStatus,
+  });
+
+  if (!progressSection || !progressBar || !progressPercent) {
+    console.error("[Popup] Missing progress UI elements!");
+    return;
+  }
+
+  // Show progress section
+  progressSection.style.display = "block";
+  console.log("[Popup] Progress section displayed");
+
+  // Update percentage
+  progressPercent.textContent = `${percent}%`;
+  progressBar.style.width = `${percent}%`;
+
+  // Update status message
+  if (status) {
+    progressStatus.textContent = status;
+  } else if (percent === 100) {
+    progressStatus.textContent = "Extracting and loading model...";
+    progressBar.classList.add("indeterminate");
+  } else if (percent > 0) {
+    progressStatus.textContent = `Downloading... (~${Math.round(
+      (percent / 100) * 1.5
+    )}GB of 1.5GB)`;
+  }
+
+  // Hide progress bar after completion with delay
+  if (percent === 100 && status === "complete") {
+    setTimeout(() => {
+      progressSection.style.display = "none";
+      progressBar.classList.remove("indeterminate");
+      progressBar.style.width = "0%";
+    }, 3000);
+  }
+}
+
+/**
  * Check for existing ToS data for current tab
  */
 async function checkExistingData() {
@@ -108,7 +188,7 @@ async function checkExistingData() {
   const tosData = result[`tos_${currentTabId}`];
 
   if (tosData && tosData.summary) {
-    showSummary(tosData.summary);
+    showSummary(tosData.summary, tosData.source, tosData.url);
     updateStatus("Summary available", "success");
   }
 }
@@ -129,6 +209,17 @@ async function handleSimplify() {
   updateStatus("Extracting ToS text...", "processing");
 
   try {
+    // Check if model needs download - show progress bar preemptively
+    const apiStatus = await sendMessageWithRetry({ type: "CHECK_API_STATUS" });
+    if (
+      apiStatus &&
+      (apiStatus.availability === "downloadable" ||
+        apiStatus.availability === "after-download")
+    ) {
+      console.log("[Popup] Model needs download, showing progress bar");
+      updateDownloadProgress(0, "Preparing to download AI model...");
+    }
+
     // Send message with retry logic
     const response = await sendMessageWithRetry({
       type: "SIMPLIFY_TOS",
@@ -136,8 +227,31 @@ async function handleSimplify() {
     });
 
     if (response && response.success) {
-      showSummary(response.summary);
-      updateStatus("Summary generated", "success");
+      // Check different status types
+      if (response.status === "downloading") {
+        // Old behavior for backward compatibility (shouldn't happen with new code)
+        showSummary(response.summary, "downloading", "");
+        updateStatus(
+          "Model downloading - try again in a few minutes",
+          "processing"
+        );
+      } else if (response.status === "downloaded-and-ready") {
+        // Model was just downloaded and is now ready
+        showSummary(response.summary, response.source, response.tosUrl);
+        updateStatus("Model downloaded! Summary generated", "success");
+        showMessage(
+          "✅ AI model downloaded successfully and is now ready for future use!",
+          "success"
+        );
+      } else if (response.status === "download-error") {
+        // Download error occurred
+        showSummary(response.summary, "download-error", "");
+        updateStatus("Model download error", "error");
+      } else {
+        // Normal summarization
+        showSummary(response.summary, response.source, response.tosUrl);
+        updateStatus("Summary generated", "success");
+      }
     } else {
       showError(response?.error || "Failed to simplify ToS");
       updateStatus("Failed", "error");
@@ -220,12 +334,51 @@ async function handleCompare() {
 /**
  * Show summary in result section
  */
-function showSummary(summary) {
+function showSummary(summary, source, tosUrl) {
   const resultSection = document.getElementById("resultSection");
   const summaryContent = document.getElementById("summaryContent");
+  const sourceInfo = document.getElementById("tosSourceInfo");
 
   // Safely set text content to prevent XSS
   summaryContent.textContent = summary;
+
+  // Show source information if available
+  if (source && sourceInfo) {
+    let sourceMessage = "";
+    let sourceClass = "";
+
+    if (source === "downloading") {
+      sourceMessage = `🔄 First-time setup: Downloading AI model`;
+      sourceClass = "downloading";
+    } else if (source === "download-error") {
+      sourceMessage = `⚠️ Model download encountered an issue`;
+      sourceClass = "downloading";
+    } else if (source === "fetched-link") {
+      sourceMessage = `✅ Successfully found and summarized ToS document from linked page`;
+      sourceClass = "fetched-link";
+    } else if (source === "current-page-popup") {
+      sourceMessage = `ℹ️ Summarized ToS popup from current page`;
+      sourceClass = "";
+    } else if (source === "current-page-element") {
+      sourceMessage = `⚠️ Summarized content from current page (no ToS link found)`;
+      sourceClass = "";
+    }
+
+    if (sourceMessage) {
+      sourceInfo.innerHTML = `<strong>${sourceMessage}</strong>`;
+      if (tosUrl && tosUrl !== window.location.href) {
+        const urlSpan = document.createElement("div");
+        urlSpan.className = "source-url";
+        urlSpan.textContent = `Source: ${tosUrl}`;
+        sourceInfo.appendChild(urlSpan);
+      }
+      sourceInfo.className = `tos-source-info ${sourceClass}`;
+      sourceInfo.style.display = "block";
+    } else {
+      sourceInfo.style.display = "none";
+    }
+  }
+
   resultSection.style.display = "block";
 
   // Scroll to result

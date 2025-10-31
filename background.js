@@ -38,9 +38,13 @@ async function checkSummarizerAvailability() {
     summarizerAvailability = availability;
     console.log("[Summarizer] Availability status:", availability);
 
-    if (availability === "after-download") {
+    if (
+      availability === "after-download" ||
+      availability === "downloadable" ||
+      availability === "downloading"
+    ) {
       console.log(
-        "[Summarizer] Model download required. The model will download automatically on first use."
+        `[Summarizer] Model ${availability}. The model will download when you click 'Simplify' (approximately 1.5GB).`
       );
     } else if (availability === "unavailable") {
       console.error(
@@ -99,6 +103,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
       break;
 
+    case "FETCH_TOS_PAGE":
+      // Content script requests to fetch a ToS page (to avoid CORS)
+      handleFetchTosPage(message, sender, sendResponse);
+      return true;
+      break;
+
     default:
       sendResponse({ success: false, error: "Unknown message type" });
   }
@@ -121,6 +131,45 @@ function handleTosDetection(message, sender) {
 }
 
 /**
+ * Ensure content script is loaded in the tab
+ * Injects it if not already present
+ */
+async function ensureContentScriptLoaded(tabId) {
+  try {
+    // Try to ping the content script
+    const pingResult = await new Promise((resolve) => {
+      chrome.tabs.sendMessage(tabId, { type: "PING" }, (response) => {
+        // If we get a response, script is loaded
+        if (chrome.runtime.lastError) {
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      });
+    });
+
+    if (pingResult) {
+      console.log("[Background] Content script already loaded");
+      return;
+    }
+
+    // Content script not loaded, inject it
+    console.log("[Background] Injecting content script...");
+    await chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ["contentScript.js"],
+    });
+
+    // Wait a bit for script to initialize
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    console.log("[Background] Content script injected successfully");
+  } catch (error) {
+    console.error("[Background] Error ensuring content script loaded:", error);
+    // Continue anyway, the sendMessage will fail with a proper error
+  }
+}
+
+/**
  * Handle simplify request from popup
  */
 async function handleSimplifyRequest(message, sender, sendResponse) {
@@ -132,6 +181,9 @@ async function handleSimplifyRequest(message, sender, sendResponse) {
       return;
     }
 
+    // Try to inject content script if not already loaded
+    await ensureContentScriptLoaded(tabId);
+
     // Request text extraction from content script
     chrome.tabs.sendMessage(
       tabId,
@@ -141,16 +193,29 @@ async function handleSimplifyRequest(message, sender, sendResponse) {
           sendResponse({
             success: false,
             error:
-              "Failed to communicate with content script: " +
-              chrome.runtime.lastError.message,
+              "Failed to communicate with content script. Please refresh the page and try again. (" +
+              chrome.runtime.lastError.message +
+              ")",
           });
           return;
         }
 
         if (!response || !response.text) {
-          sendResponse({ success: false, error: "No ToS text found on page" });
+          const errorMsg =
+            response?.source === "none"
+              ? "No Terms of Service found on this page. The extension looks for ToS links or ToS content on the current page."
+              : "No ToS text found on page";
+          sendResponse({
+            success: false,
+            error: errorMsg,
+            source: response?.source || "unknown",
+          });
           return;
         }
+
+        console.log(
+          `[Background] Received ToS text from ${response.source}: ${response.text.length} chars from ${response.url}`
+        );
 
         // Summarize locally using Summarizer API
         const { summary, status } = await summarizeLocally(response.text);
@@ -161,6 +226,8 @@ async function handleSimplifyRequest(message, sender, sendResponse) {
           originalText: response.text.substring(0, 500), // Store first 500 chars
           summary: summary,
           timestamp: Date.now(),
+          source: response.source || "unknown",
+          linkText: response.linkText || "",
         };
 
         await chrome.storage.local.set({
@@ -172,6 +239,8 @@ async function handleSimplifyRequest(message, sender, sendResponse) {
           status,
           summary,
           storedData: storedData,
+          source: response.source,
+          tosUrl: response.url,
         });
       }
     );
@@ -309,6 +378,60 @@ async function handleTextExtraction(message, sender, sendResponse) {
 }
 
 /**
+ * Handle ToS page fetch request from content script
+ * Fetches external URLs to avoid CORS issues in content scripts
+ */
+async function handleFetchTosPage(message, sender, sendResponse) {
+  try {
+    const url = message.url;
+
+    if (!url) {
+      sendResponse({ success: false, error: "No URL provided" });
+      return;
+    }
+
+    console.log(`[Background] Fetching ToS page: ${url}`);
+
+    // Use fetch API from background script (no CORS restrictions)
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (compatible; ToS-Simplifier-Extension)",
+      },
+      credentials: "omit", // Don't send cookies for privacy
+    });
+
+    if (!response.ok) {
+      console.error(`[Background] Failed to fetch ${url}: ${response.status}`);
+      sendResponse({
+        success: false,
+        error: `HTTP ${response.status}: ${response.statusText}`,
+      });
+      return;
+    }
+
+    const html = await response.text();
+    console.log(
+      `[Background] Successfully fetched ${url} (${html.length} bytes)`
+    );
+
+    sendResponse({
+      success: true,
+      html: html,
+      url: url,
+    });
+  } catch (error) {
+    console.error(`[Background] Error fetching ToS page:`, error);
+    sendResponse({
+      success: false,
+      error: error.message,
+    });
+  }
+}
+
+/**
  * Handle tab updates to inject content script if needed
  */
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -326,7 +449,10 @@ function getAvailabilityMessage(status) {
     case "readily":
       return "AI summarization is ready to use";
     case "after-download":
-      return "AI model will download on first use (~1.5GB)";
+    case "downloadable":
+      return "AI model needs to download (~1.5GB). Click Simplify to start download.";
+    case "downloading":
+      return "AI model is downloading in the background (~1.5GB). Click Simplify to use it (may take a few minutes).";
     case "unavailable":
       return "AI summarization unavailable. Please enable chrome://flags/#optimization-guide-on-device-model and restart Chrome";
     case "unsupported":
@@ -374,7 +500,7 @@ async function summarizeLocally(text) {
       };
     }
 
-    // Check availability; may be 'readily', 'unavailable', or 'after-download'
+    // Check availability; may be 'readily', 'unavailable', 'after-download', 'downloadable', or 'downloading'
     const availability = await self.Summarizer.availability();
     console.log("[Summarizer] Current availability:", availability);
 
@@ -386,12 +512,125 @@ async function summarizeLocally(text) {
       };
     }
 
-    // If model needs download, inform the user
-    const needsDownload = availability === "after-download";
+    // If model needs download or is downloading, inform the user
+    const needsDownload =
+      availability === "after-download" ||
+      availability === "downloadable" ||
+      availability === "downloading";
+
     if (needsDownload) {
       console.log(
-        "[Summarizer] Downloading AI model... This may take a few minutes."
+        `[Summarizer] Model ${availability}. Will initiate download with progress monitoring (approximately 1.5GB).`
       );
+
+      // Send initial progress update
+      chrome.runtime
+        .sendMessage({
+          type: "DOWNLOAD_PROGRESS",
+          percent: 0,
+          status: "Starting download...",
+        })
+        .catch(() => {
+          console.log(
+            "[Summarizer] Could not send initial progress to popup (popup may be closed)"
+          );
+        });
+
+      // Create summarizer with download progress monitoring
+      try {
+        let downloadProgress = 0;
+        let modelExtractingOrLoading = false;
+
+        const summarizer = await self.Summarizer.create({
+          type: "key-points",
+          format: "markdown",
+          length: "medium",
+          sharedContext: "Summarizing Terms of Service for user clarity",
+          monitor(m) {
+            console.log("[Summarizer] Monitor callback registered");
+            m.addEventListener("downloadprogress", (e) => {
+              downloadProgress = e.loaded;
+              const percent = Math.round(e.loaded * 100);
+              console.log(`[Summarizer] Download progress: ${percent}%`);
+
+              // Send progress update to popup
+              chrome.runtime
+                .sendMessage({
+                  type: "DOWNLOAD_PROGRESS",
+                  percent: percent,
+                  status:
+                    percent < 100
+                      ? `Downloading AI model... (${percent}%)`
+                      : "Download complete. Extracting and loading model...",
+                })
+                .catch(() => {
+                  // Popup might not be open, ignore error
+                  console.log(
+                    "[Summarizer] Could not send progress to popup (popup may be closed)"
+                  );
+                });
+
+              // When download completes, model needs to be extracted and loaded
+              if (e.loaded === 1 && !modelExtractingOrLoading) {
+                modelExtractingOrLoading = true;
+                console.log(
+                  "[Summarizer] Download complete. Extracting and loading model into memory..."
+                );
+
+                // Send extraction status to popup
+                chrome.runtime
+                  .sendMessage({
+                    type: "DOWNLOAD_PROGRESS",
+                    percent: 100,
+                    status: "Extracting and loading model into memory...",
+                  })
+                  .catch(() => {});
+              }
+            });
+          },
+        });
+
+        // Model is ready, perform summarization
+        const summary = await summarizer.summarize(text, {
+          context: "Simplify the legal content for a general audience.",
+        });
+
+        // Clean up
+        summarizer.destroy();
+
+        // Update cached availability since model is now ready
+        summarizerAvailability = "readily";
+
+        // Send completion message to popup
+        chrome.runtime
+          .sendMessage({
+            type: "DOWNLOAD_PROGRESS",
+            percent: 100,
+            status: "complete",
+          })
+          .catch(() => {});
+
+        return {
+          summary,
+          status: "downloaded-and-ready",
+        };
+      } catch (error) {
+        console.error(
+          "[Summarizer] Error during model download/creation:",
+          error
+        );
+        return {
+          summary:
+            "⚠️ Model download initiated but encountered an error.\n\n" +
+            "The AI model download may be in progress in the background. " +
+            "Please wait a few minutes and try again.\n\n" +
+            "You can check download status at chrome://components/ " +
+            "(look for 'Optimization Guide On Device Model').\n\n" +
+            "Error: " +
+            error.message,
+          status: "download-error",
+        };
+      }
     }
 
     const summarizer = await self.Summarizer.create({

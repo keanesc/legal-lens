@@ -1,61 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ToS Simplifier</title>
-  <link rel="stylesheet" href="popup.css">
-</head>
-<body>
-  <div class="container">
-    <header>
-      <h1>🤖 ToS Simplifier</h1>
-      <p class="subtitle">Understand Terms of Service in seconds</p>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ToS Simplifier</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🤖 ToS Simplifier</h1>
+        <p class="subtitle">Understand Terms of Service in seconds</p>
+      </header>
 
-    <div class="status-section" id="statusSection">
-      <div class="status-indicator" id="statusIndicator">
-        <span class="status-dot"></span>
-        <span id="statusText">Ready</span>
+      <div class="status-section" id="statusSection">
+        <div class="status-indicator" id="statusIndicator">
+          <span class="status-dot"></span>
+          <span id="statusText">Ready</span>
+        </div>
+      </div>
+
+      <!-- Download Progress Section -->
+      <div class="progress-section" id="progressSection" style="display: none">
+        <div class="progress-header">
+          <span class="progress-label">Downloading AI Model</span>
+          <span class="progress-percent" id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-info">
+          <span id="progressStatus">Initializing download...</span>
+        </div>
+      </div>
+
+      <div class="actions-section">
+        <button id="simplifyBtn" class="action-btn primary">
+          <span class="btn-icon">✨</span>
+          <span class="btn-text">Simplify</span>
+        </button>
+
+        <button id="saveBtn" class="action-btn secondary">
+          <span class="btn-icon">💾</span>
+          <span class="btn-text">Save</span>
+        </button>
+
+        <button id="compareBtn" class="action-btn secondary">
+          <span class="btn-icon">📊</span>
+          <span class="btn-text">Compare</span>
+        </button>
+      </div>
+
+      <div class="result-section" id="resultSection" style="display: none">
+        <h3>Summary</h3>
+        <div
+          id="tosSourceInfo"
+          class="tos-source-info"
+          style="display: none"
+        ></div>
+        <div id="summaryContent" class="summary-content"></div>
+      </div>
+
+      <div class="saved-section" id="savedSection" style="display: none">
+        <h3>Saved ToS</h3>
+        <div id="savedList" class="saved-list"></div>
+      </div>
+
+      <div class="info-section">
+        <p class="info-text">
+          💡 Tip: This extension scans for Terms of Service links on the page
+          and fetches them for summarization.
+        </p>
       </div>
     </div>
 
-    <div class="actions-section">
-      <button id="simplifyBtn" class="action-btn primary">
-        <span class="btn-icon">✨</span>
-        <span class="btn-text">Simplify</span>
-      </button>
-      
-      <button id="saveBtn" class="action-btn secondary">
-        <span class="btn-icon">💾</span>
-        <span class="btn-text">Save</span>
-      </button>
-      
-      <button id="compareBtn" class="action-btn secondary">
-        <span class="btn-icon">📊</span>
-        <span class="btn-text">Compare</span>
-      </button>
-    </div>
-
-    <div class="result-section" id="resultSection" style="display: none;">
-      <h3>Summary</h3>
-      <div id="summaryContent" class="summary-content"></div>
-    </div>
-
-    <div class="saved-section" id="savedSection" style="display: none;">
-      <h3>Saved ToS</h3>
-      <div id="savedList" class="saved-list"></div>
-    </div>
-
-    <div class="info-section">
-      <p class="info-text">
-        💡 Tip: Click "Simplify" when you see a Terms of Service popup on the page.
-      </p>
-    </div>
-  </div>
-
-  <script src="popup.js"></script>
-</body>
+    <script src="popup.js"></script>
+  </body>
 </html>
-
-
