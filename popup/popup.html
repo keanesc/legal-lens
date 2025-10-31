@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Legal Lens</title>
+    <title>Legal Lens - AI-Powered ToS Simplifier</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
     <div class="container">
       <header>
-        <h1>Legal Lens</h1>
-        <p class="subtitle">Understand Terms of Service in seconds</p>
+        <h1>⚖️ Legal Lens</h1>
+        <p class="subtitle">Understand Terms of Service in seconds with AI</p>
       </header>
 
       <div class="status-section" id="statusSection">
@@ -37,18 +37,20 @@
       <div class="actions-section">
         <button id="simplifyBtn" class="action-btn primary">
           <span class="btn-icon">✨</span>
-          <span class="btn-text">Simplify</span>
+          <span class="btn-text">Simplify Terms of Service</span>
         </button>
 
-        <button id="saveBtn" class="action-btn secondary">
-          <span class="btn-icon">💾</span>
-          <span class="btn-text">Save</span>
-        </button>
+        <div style="display: flex; gap: 12px;">
+          <button id="saveBtn" class="action-btn secondary" style="flex: 1;">
+            <span class="btn-icon">💾</span>
+            <span class="btn-text">Save</span>
+          </button>
 
-        <button id="compareBtn" class="action-btn secondary">
-          <span class="btn-icon">📊</span>
-          <span class="btn-text">Compare</span>
-        </button>
+          <button id="compareBtn" class="action-btn secondary" style="flex: 1;">
+            <span class="btn-icon">📊</span>
+            <span class="btn-text">Compare</span>
+          </button>
+        </div>
       </div>
 
       <div class="result-section" id="resultSection" style="display: none">
@@ -68,8 +70,7 @@
 
       <div class="info-section">
         <p class="info-text">
-          💡 Tip: This extension scans for Terms of Service links on the page
-          and fetches them for summarization.
+          💡 <strong>Tip:</strong> Click "Simplify" to automatically detect and summarize Terms of Service on any webpage
         </p>
       </div>
     </div>

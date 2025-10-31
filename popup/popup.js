@@ -217,7 +217,10 @@ async function handleSimplify() {
 
   const simplifyBtn = document.getElementById("simplifyBtn");
   simplifyBtn.disabled = true;
-  simplifyBtn.querySelector(".btn-text").textContent = "Processing...";
+  simplifyBtn.classList.add("loading");
+  const btnText = simplifyBtn.querySelector(".btn-text");
+  const originalText = btnText.textContent;
+  btnText.textContent = "Processing...";
 
   updateStatus("Extracting ToS text...", "processing");
 
@@ -274,7 +277,8 @@ async function handleSimplify() {
     updateStatus("Error occurred", "error");
   } finally {
     simplifyBtn.disabled = false;
-    simplifyBtn.querySelector(".btn-text").textContent = "Simplify";
+    simplifyBtn.classList.remove("loading");
+    btnText.textContent = originalText;
   }
 }
 
@@ -289,7 +293,10 @@ async function handleSave() {
 
   const saveBtn = document.getElementById("saveBtn");
   saveBtn.disabled = true;
-  saveBtn.querySelector(".btn-text").textContent = "Saving...";
+  saveBtn.classList.add("loading");
+  const btnText = saveBtn.querySelector(".btn-text");
+  const originalText = btnText.textContent;
+  btnText.textContent = "Saving...";
 
   try {
     const response = await sendMessageWithRetry({
@@ -298,7 +305,7 @@ async function handleSave() {
     });
 
     if (response && response.success) {
-      showMessage("ToS saved successfully!", "success");
+      showMessage("✅ ToS saved successfully!", "success");
       updateStatus("Saved", "success");
     } else {
       showError(response?.error || "Failed to save ToS");
@@ -307,7 +314,8 @@ async function handleSave() {
     showError("Error: " + error.message);
   } finally {
     saveBtn.disabled = false;
-    saveBtn.querySelector(".btn-text").textContent = "Save";
+    saveBtn.classList.remove("loading");
+    btnText.textContent = originalText;
   }
 }
 
@@ -322,7 +330,10 @@ async function handleCompare() {
 
   const compareBtn = document.getElementById("compareBtn");
   compareBtn.disabled = true;
-  compareBtn.querySelector(".btn-text").textContent = "Comparing...";
+  compareBtn.classList.add("loading");
+  const btnText = compareBtn.querySelector(".btn-text");
+  const originalText = btnText.textContent;
+  btnText.textContent = "Comparing...";
 
   try {
     const response = await sendMessageWithRetry({
@@ -340,7 +351,8 @@ async function handleCompare() {
     showError("Error: " + error.message);
   } finally {
     compareBtn.disabled = false;
-    compareBtn.querySelector(".btn-text").textContent = "Compare";
+    compareBtn.classList.remove("loading");
+    btnText.textContent = originalText;
   }
 }
 
@@ -515,18 +527,40 @@ function showMessage(message, type = "success") {
     top: 10px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 10px 20px;
-    border-radius: 5px;
+    padding: 12px 24px;
+    border-radius: 8px;
     background: ${type === "error" ? "#f44336" : "#4CAF50"};
     color: white;
-    font-size: 12px;
-    z-index: 1000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideDown 0.3s ease-out;
   `;
+
+  // Add animation styles
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+  `;
+  document.head.appendChild(style);
 
   document.body.appendChild(messageEl);
 
   setTimeout(() => {
-    messageEl.remove();
-  }, 3000);
+    messageEl.style.animation = "slideDown 0.3s ease-out reverse";
+    setTimeout(() => {
+      messageEl.remove();
+      style.remove();
+    }, 300);
+  }, 2700);
 }
