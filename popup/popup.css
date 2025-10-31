@@ -1,4 +1,4 @@
-/* Popup Styles for ToS Simplifier Extension */
+/* Popup Styles for Legal Lens Extension */
 
 * {
   margin: 0;
@@ -395,6 +395,16 @@ header h1 {
   word-break: break-all;
   opacity: 0.85;
   margin-top: 4px;
+}
+
+.translation-info {
+  font-size: 11.5px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+  font-weight: 500;
+  display: inline-block;
 }
 
 .saved-section {

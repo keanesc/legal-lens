@@ -1,0 +1,260 @@
+{
+  "extName": {
+    "message": "Legal Lens",
+    "description": "Nom de l'extension"
+  },
+  "extDescription": {
+    "message": "Détecte et résume automatiquement les fenêtres de Conditions d'Utilisation à l'aide de l'IA",
+    "description": "Description de l'extension"
+  },
+  "appTitle": {
+    "message": "Legal Lens",
+    "description": "Titre de l'application"
+  },
+  "appSubtitle": {
+    "message": "Comprenez les Conditions d'Utilisation en quelques secondes avec l'IA",
+    "description": "Sous-titre de l'application"
+  },
+  "statusReady": {
+    "message": "Prêt",
+    "description": "Indicateur d'état quand prêt"
+  },
+  "statusProcessing": {
+    "message": "Traitement en cours...",
+    "description": "État lors du traitement"
+  },
+  "btnSimplify": {
+    "message": "Simplifier les Conditions d'Utilisation",
+    "description": "Texte du bouton simplifier"
+  },
+  "btnSave": {
+    "message": "Sauvegarder",
+    "description": "Texte du bouton sauvegarder"
+  },
+  "btnCompare": {
+    "message": "Comparer",
+    "description": "Texte du bouton comparer"
+  },
+  "btnSaving": {
+    "message": "Sauvegarde...",
+    "description": "Texte du bouton lors de la sauvegarde"
+  },
+  "downloadingModel": {
+    "message": "Téléchargement du Modèle IA",
+    "description": "En-tête de progression pour le téléchargement du modèle"
+  },
+  "initializingDownload": {
+    "message": "Initialisation du téléchargement...",
+    "description": "État initial du téléchargement"
+  },
+  "preparingModel": {
+    "message": "Préparation du modèle sur l'appareil...",
+    "description": "État lors de la préparation du modèle"
+  },
+  "downloadingModelProgress": {
+    "message": "Téléchargement du modèle sur l'appareil... $PERCENT$%",
+    "description": "Message de progression du téléchargement",
+    "placeholders": {
+      "percent": {
+        "content": "$1",
+        "example": "75"
+      }
+    }
+  },
+  "extractingModel": {
+    "message": "Extraction et chargement du modèle...",
+    "description": "État lors de l'extraction du modèle"
+  },
+  "downloadingSize": {
+    "message": "Téléchargement... (~$SIZE$Go sur 1,5Go)",
+    "description": "Progression de la taille du téléchargement",
+    "placeholders": {
+      "size": {
+        "content": "$1",
+        "example": "0.8"
+      }
+    }
+  },
+  "summaryTitle": {
+    "message": "Résumé",
+    "description": "Titre de la section résumé"
+  },
+  "savedTosTitle": {
+    "message": "CGU Sauvegardées",
+    "description": "Titre de la section CGU sauvegardées"
+  },
+  "tipLabel": {
+    "message": "Conseil :",
+    "description": "Étiquette de conseil"
+  },
+  "tipText": {
+    "message": "Cliquez sur \"Simplifier\" pour détecter et résumer automatiquement les Conditions d'Utilisation sur n'importe quelle page web",
+    "description": "Texte du conseil"
+  },
+  "noActiveTab": {
+    "message": "Aucun onglet actif trouvé",
+    "description": "Erreur quand aucun onglet actif"
+  },
+  "extractingTos": {
+    "message": "Extraction du texte des CGU...",
+    "description": "État lors de l'extraction des CGU"
+  },
+  "modelDownloadError": {
+    "message": "Erreur de téléchargement du modèle",
+    "description": "État d'erreur de téléchargement du modèle"
+  },
+  "summaryGenerated": {
+    "message": "Résumé généré",
+    "description": "État lorsque le résumé est généré"
+  },
+  "summaryAvailable": {
+    "message": "Résumé disponible",
+    "description": "État lorsque le résumé est disponible"
+  },
+  "failed": {
+    "message": "Échec",
+    "description": "État d'échec"
+  },
+  "errorOccurred": {
+    "message": "Une erreur s'est produite",
+    "description": "État d'erreur survenue"
+  },
+  "failedToSimplify": {
+    "message": "Échec de la simplification des CGU",
+    "description": "Message d'erreur lors de l'échec de simplification"
+  },
+  "modelDownloadTryAgain": {
+    "message": "Téléchargement du modèle en cours - réessayez dans quelques minutes",
+    "description": "Message lorsque le modèle est en cours de téléchargement"
+  },
+  "modelDownloaded": {
+    "message": "Modèle téléchargé ! Résumé généré",
+    "description": "Message de succès lors du téléchargement du modèle"
+  },
+  "modelDownloadedSuccess": {
+    "message": "✅ Modèle IA téléchargé avec succès et prêt pour une utilisation future !",
+    "description": "Notification de succès du téléchargement du modèle"
+  },
+  "savedSuccessfully": {
+    "message": "Sauvegardé avec succès",
+    "description": "Message de succès de sauvegarde"
+  },
+  "failedToSave": {
+    "message": "Échec de la sauvegarde des CGU",
+    "description": "Message d'erreur de sauvegarde"
+  },
+  "noSummaryToSave": {
+    "message": "Aucun résumé à sauvegarder. Veuillez d'abord simplifier des CGU.",
+    "description": "Erreur lors de la tentative de sauvegarde sans résumé"
+  },
+  "comparePageTitle": {
+    "message": "Comparer les CGU - Legal Lens",
+    "description": "Titre de la page de comparaison"
+  },
+  "selectTwoToCompare": {
+    "message": "Veuillez sélectionner deux CGU à comparer",
+    "description": "Erreur lorsque moins de 2 sont sélectionnés pour la comparaison"
+  },
+  "noSavedTos": {
+    "message": "Aucune CGU sauvegardée pour le moment. Sauvegardez des résumés pour les comparer plus tard.",
+    "description": "Message lorsqu'aucune CGU n'est sauvegardée"
+  },
+  "savedTosList": {
+    "message": "Liste des CGU Sauvegardées",
+    "description": "Titre de la liste des CGU sauvegardées"
+  },
+  "selectToCompare": {
+    "message": "Sélectionnez les éléments à comparer :",
+    "description": "Instruction pour sélectionner des éléments"
+  },
+  "compareSelected": {
+    "message": "Comparer la Sélection",
+    "description": "Bouton de comparaison pour les éléments sélectionnés"
+  },
+  "deleteBtn": {
+    "message": "Supprimer",
+    "description": "Texte du bouton supprimer"
+  },
+  "tosDetected": {
+    "message": "Fenêtre de CGU détectée :",
+    "description": "Journal de console pour la détection des CGU"
+  },
+  "explainTermsAria": {
+    "message": "Expliquer les Conditions d'Utilisation avec l'IA",
+    "description": "Étiquette aria pour le bouton expliquer"
+  },
+  "explainTermsTitle": {
+    "message": "Expliquer les Conditions avec l'IA",
+    "description": "Titre pour le bouton expliquer"
+  },
+  "explainTermsText": {
+    "message": "🤖 Expliquer avec l'IA",
+    "description": "Texte pour le bouton expliquer"
+  },
+  "preparingToDownload": {
+    "message": "Préparation du téléchargement du modèle IA...",
+    "description": "État avant le début du téléchargement"
+  },
+  "error": {
+    "message": "Erreur :",
+    "description": "Préfixe d'erreur"
+  },
+  "comparisonReady": {
+    "message": "Comparaison prête",
+    "description": "État lorsque la comparaison est prête"
+  },
+  "failedToCompare": {
+    "message": "Échec de la comparaison des CGU",
+    "description": "Message d'erreur lors de l'échec de comparaison"
+  },
+  "noSavedToCompare": {
+    "message": "Aucune CGU sauvegardée pour comparer",
+    "description": "Erreur lorsqu'aucune CGU sauvegardée pour comparer"
+  },
+  "sourceDownloading": {
+    "message": "🔄 Configuration initiale : Téléchargement du modèle IA",
+    "description": "Info source pour téléchargement du modèle"
+  },
+  "sourceDownloadError": {
+    "message": "⚠️ Le téléchargement du modèle a rencontré un problème",
+    "description": "Info source pour erreur de téléchargement"
+  },
+  "sourceFetchedLink": {
+    "message": "✅ Document CGU trouvé et résumé avec succès depuis la page liée",
+    "description": "Info source pour lien récupéré"
+  },
+  "sourceCurrentPagePopup": {
+    "message": "ℹ️ Fenêtre CGU résumée depuis la page actuelle",
+    "description": "Info source pour fenêtre de page actuelle"
+  },
+  "sourceCurrentPageElement": {
+    "message": "⚠️ Contenu résumé depuis la page actuelle (aucun lien CGU trouvé)",
+    "description": "Info source pour élément de page actuelle"
+  },
+  "sourceLabel": {
+    "message": "Source :",
+    "description": "Étiquette pour URL source"
+  },
+  "translating": {
+    "message": "Traduction du résumé...",
+    "description": "État pendant la traduction"
+  },
+  "translated": {
+    "message": "Traduit en $LANGUAGE$",
+    "description": "État après traduction",
+    "placeholders": {
+      "language": {
+        "content": "$1",
+        "example": "français"
+      }
+    }
+  },
+  "translationFailed": {
+    "message": "Traduction indisponible, affichage de l'original",
+    "description": "Message lorsque la traduction échoue"
+  },
+  "downloadingTranslationModel": {
+    "message": "Téléchargement du modèle de traduction...",
+    "description": "État lors du téléchargement du modèle de traduction"
+  }
+}

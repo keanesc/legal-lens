@@ -83,7 +83,7 @@ let currentTosElement = null; // Track the currently detected ToS element
  */
 (function init() {
   console.log(
-    "ToS Simplifier content script loaded v1.1",
+    "Legal Lens content script loaded v1.1",
     new Date().toISOString()
   );
 
@@ -289,7 +289,7 @@ function isModalLike(element) {
  * Handle ToS detection - show floating action button
  */
 function handleTosDetection(element) {
-  console.log("ToS popup detected:", element);
+  console.log(chrome.i18n.getMessage("tosDetected"), element);
 
   // Store the current ToS element
   currentTosElement = element;
@@ -346,7 +346,7 @@ function findButtonContainer(element) {
 
   // If no button container found, create a wrapper
   const wrapper = document.createElement("div");
-  wrapper.className = "tos-simplifier-button-wrapper";
+  wrapper.className = "legal-lens-button-wrapper";
   wrapper.style.cssText = "margin-top: 10px; text-align: center;";
 
   // Try to append to the element itself
@@ -367,10 +367,10 @@ function findButtonContainer(element) {
  */
 function createExplainButton() {
   const button = document.createElement("button");
-  button.className = "tos-simplifier-explain-btn";
-  button.setAttribute("aria-label", "Explain Terms of Service using AI");
+  button.className = "legal-lens-explain-btn";
+  button.setAttribute("aria-label", chrome.i18n.getMessage("explainTermsAria"));
   button.setAttribute("role", "button");
-  button.title = "Explain Terms with AI";
+  button.title = chrome.i18n.getMessage("explainTermsTitle");
 
   // Get the extension icon URL
   const iconUrl = chrome.runtime.getURL("icons/icon48.png");
@@ -547,7 +547,7 @@ function extractTosText(element) {
   scripts.forEach((el) => el.remove());
 
   // Remove the explain button if present
-  const buttons = clone.querySelectorAll(".tos-simplifier-explain-btn");
+  const buttons = clone.querySelectorAll(".legal-lens-explain-btn");
   buttons.forEach((el) => el.remove());
 
   // Get text content
@@ -564,12 +564,12 @@ function extractTosText(element) {
  */
 function showResult(message, type = "success") {
   // Remove existing result if any
-  const existing = document.querySelector(".tos-simplifier-result");
+  const existing = document.querySelector(".legal-lens-result");
   if (existing) existing.remove();
 
   // Create result overlay
   const overlay = document.createElement("div");
-  overlay.className = "tos-simplifier-result";
+  overlay.className = "legal-lens-result";
   overlay.style.cssText = `
     position: fixed;
     top: 20px;
@@ -675,7 +675,7 @@ function handleMessage(message, sender, sendResponse) {
           });
         })
         .catch((error) => {
-          console.error("[ToS Simplifier] Error in EXTRACT_TOS_TEXT:", error);
+          console.error("[Legal Lens] Error in EXTRACT_TOS_TEXT:", error);
           sendResponse({
             success: false,
             error: error.message,
@@ -715,7 +715,7 @@ function handleMessage(message, sender, sendResponse) {
  * NEW: Prioritizes fetching ToS from links over current page content
  */
 async function extractTosTextFromPage() {
-  console.log("[ToS Simplifier] Extracting ToS text from page...");
+  console.log("[Legal Lens] Extracting ToS text from page...");
 
   // STEP 1: Try to find and fetch ToS documents from links (NEW BEHAVIOR)
   try {
@@ -723,7 +723,7 @@ async function extractTosTextFromPage() {
 
     if (tosDocument.success && tosDocument.text) {
       console.log(
-        `[ToS Simplifier] Successfully fetched ToS from: ${tosDocument.url}`
+        `[Legal Lens] Successfully fetched ToS from: ${tosDocument.url}`
       );
       return {
         text: tosDocument.text,
@@ -733,15 +733,15 @@ async function extractTosTextFromPage() {
       };
     } else {
       console.log(
-        `[ToS Simplifier] No ToS found via links: ${tosDocument.message}`
+        `[Legal Lens] No ToS found via links: ${tosDocument.message}`
       );
     }
   } catch (error) {
-    console.error("[ToS Simplifier] Error fetching ToS from links:", error);
+    console.error("[Legal Lens] Error fetching ToS from links:", error);
   }
 
   // STEP 2: Fallback to current page content (OLD BEHAVIOR)
-  console.log("[ToS Simplifier] Falling back to current page content...");
+  console.log("[Legal Lens] Falling back to current page content...");
 
   // Try to find detected elements first
   if (detectedElements.size > 0) {
@@ -866,10 +866,7 @@ function detectTosLinks() {
     detectedTosLinks.set(link.url, link);
   });
 
-  console.log(
-    `[ToS Simplifier] Found ${links.length} potential ToS links:`,
-    links
-  );
+  console.log(`[Legal Lens] Found ${links.length} potential ToS links:`, links);
 
   return links;
 }
@@ -880,7 +877,7 @@ function detectTosLinks() {
  */
 async function fetchTosPage(url) {
   try {
-    console.log(`[ToS Simplifier] Requesting fetch for ToS page: ${url}`);
+    console.log(`[Legal Lens] Requesting fetch for ToS page: ${url}`);
 
     // Send fetch request to background script (to avoid CORS issues)
     const response = await new Promise((resolve, reject) => {
@@ -900,18 +897,18 @@ async function fetchTosPage(url) {
     });
 
     if (response && response.success && response.html) {
-      console.log(`[ToS Simplifier] Successfully fetched ${url}`);
+      console.log(`[Legal Lens] Successfully fetched ${url}`);
       return response.html;
     } else {
       console.error(
-        `[ToS Simplifier] Failed to fetch ${url}: ${
+        `[Legal Lens] Failed to fetch ${url}: ${
           response?.error || "Unknown error"
         }`
       );
       return null;
     }
   } catch (error) {
-    console.error(`[ToS Simplifier] Error fetching ${url}:`, error);
+    console.error(`[Legal Lens] Error fetching ${url}:`, error);
     return null;
   }
 }
@@ -1005,7 +1002,7 @@ function verifyTosDocument(html, url) {
     const isToS = keywordMatches >= 3;
 
     console.log(
-      `[ToS Simplifier] Verified ${url}: isToS=${isToS}, confidence=${confidence}%, keywords=${keywordMatches}`
+      `[Legal Lens] Verified ${url}: isToS=${isToS}, confidence=${confidence}%, keywords=${keywordMatches}`
     );
 
     return {
@@ -1016,7 +1013,7 @@ function verifyTosDocument(html, url) {
       reason: isToS ? "Valid ToS document" : "Insufficient legal terms",
     };
   } catch (error) {
-    console.error(`[ToS Simplifier] Error verifying document:`, error);
+    console.error(`[Legal Lens] Error verifying document:`, error);
     return {
       isToS: false,
       confidence: 0,
@@ -1031,13 +1028,13 @@ function verifyTosDocument(html, url) {
  * Returns {success: boolean, text: string, url: string, source: string}
  */
 async function findAndFetchTosDocument() {
-  console.log("[ToS Simplifier] Starting ToS document search...");
+  console.log("[Legal Lens] Starting ToS document search...");
 
   // Step 1: Detect ToS links on the page
   const tosLinks = detectTosLinks();
 
   if (tosLinks.length === 0) {
-    console.log("[ToS Simplifier] No ToS links found on page");
+    console.log("[Legal Lens] No ToS links found on page");
     return {
       success: false,
       text: "",
@@ -1050,15 +1047,13 @@ async function findAndFetchTosDocument() {
   // Step 2: Try to fetch and verify each link (starting with highest confidence)
   for (const link of tosLinks) {
     console.log(
-      `[ToS Simplifier] Trying link: ${link.url} (confidence: ${link.confidence}%)`
+      `[Legal Lens] Trying link: ${link.url} (confidence: ${link.confidence}%)`
     );
 
     const html = await fetchTosPage(link.url);
 
     if (!html) {
-      console.log(
-        `[ToS Simplifier] Failed to fetch ${link.url}, trying next...`
-      );
+      console.log(`[Legal Lens] Failed to fetch ${link.url}, trying next...`);
       continue;
     }
 
@@ -1066,7 +1061,7 @@ async function findAndFetchTosDocument() {
     const verification = verifyTosDocument(html, link.url);
 
     if (verification.isToS) {
-      console.log(`[ToS Simplifier] Found valid ToS document at ${link.url}`);
+      console.log(`[Legal Lens] Found valid ToS document at ${link.url}`);
       return {
         success: true,
         text: verification.text,
@@ -1080,7 +1075,7 @@ async function findAndFetchTosDocument() {
 
   // No valid ToS document found
   console.log(
-    "[ToS Simplifier] No valid ToS documents found after checking all links"
+    "[Legal Lens] No valid ToS documents found after checking all links"
   );
   return {
     success: false,

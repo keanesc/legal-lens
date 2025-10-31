@@ -11,16 +11,19 @@ It helps users quickly understand complex legal language while keeping all proce
   Detects ToS and Privacy Policy pop-ups in real time using `MutationObserver`.
 
 - **On-Device AI Summarization**  
-  Simplifies ToS text locally using Chrome’s **Gemini Nano Summarizer API** — no data ever leaves your device.
+  Simplifies ToS text locally using Chrome's **Gemini Nano Summarizer API** — no data ever leaves your device.
+
+- **Multilingual Support**  
+  Automatically translates summaries to your browser's language using Chrome's **Translator API** — both UI and content in your language!
 
 - **Privacy by Design**  
-  100% local processing, no external servers or API calls.
+  100% local processing for both summarization and translation, no external servers or API calls.
 
 - **Save & Compare**  
   Save summaries and compare them across websites to identify changes.
 
 - **Smart UI Injection**  
-  Adds an “Explain Terms” button automatically near detected ToS content.
+  Adds an "Explain Terms" button automatically near detected ToS content.
 
 ---
 
@@ -28,16 +31,17 @@ It helps users quickly understand complex legal language while keeping all proce
 
 | Requirement         | Details                            |
 |---------------------|------------------------------------|
-| **Chrome Version**  | 122 or later (February 2024+)      |
+| **Chrome Version**  | 138+ for translation, 122+ for summarization |
 | **Gemini Nano**     | Must be enabled via Chrome flags   |
-| **Disk Space**      | ~1.5 GB for the on-device AI model |
+| **Translator API**  | Enabled by default in Chrome 138+  |
+| **Disk Space**      | ~1.5 GB for summarization + 1-5MB per translation language |
 
 ---
 
 ## Project Structure
 
 ```
-tos-simplifier-extension/
+legal-lens-extension/
 ├── manifest.json # Manifest V3 configuration
 ├── background.js # Background service worker
 ├── contentScript.js # Detects and extracts ToS pop-ups
@@ -86,7 +90,7 @@ Use an icon that represents document simplification (e.g., a document with a che
 1. Go to `chrome://extensions/`
 2. Enable **Developer mode**
 3. Click **Load unpacked**
-4. Select your `tos-simplifier-extension/` directory
+4. Select your `legal-lens-extension/` directory
 
 The extension will now appear in your Chrome toolbar.
 

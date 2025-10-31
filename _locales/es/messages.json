@@ -1,0 +1,260 @@
+{
+  "extName": {
+    "message": "Legal Lens",
+    "description": "Nombre de la extensión"
+  },
+  "extDescription": {
+    "message": "Detecta y resume automáticamente las ventanas emergentes de Términos de Servicio usando IA",
+    "description": "Descripción de la extensión"
+  },
+  "appTitle": {
+    "message": "Legal Lens",
+    "description": "Título de la aplicación"
+  },
+  "appSubtitle": {
+    "message": "Comprende los Términos de Servicio en segundos con IA",
+    "description": "Subtítulo de la aplicación"
+  },
+  "statusReady": {
+    "message": "Listo",
+    "description": "Indicador de estado cuando está listo"
+  },
+  "statusProcessing": {
+    "message": "Procesando...",
+    "description": "Estado cuando se está procesando"
+  },
+  "btnSimplify": {
+    "message": "Simplificar Términos de Servicio",
+    "description": "Texto del botón simplificar"
+  },
+  "btnSave": {
+    "message": "Guardar",
+    "description": "Texto del botón guardar"
+  },
+  "btnCompare": {
+    "message": "Comparar",
+    "description": "Texto del botón comparar"
+  },
+  "btnSaving": {
+    "message": "Guardando...",
+    "description": "Texto del botón guardar mientras guarda"
+  },
+  "downloadingModel": {
+    "message": "Descargando Modelo de IA",
+    "description": "Encabezado de progreso para descarga del modelo"
+  },
+  "initializingDownload": {
+    "message": "Inicializando descarga...",
+    "description": "Estado inicial de descarga"
+  },
+  "preparingModel": {
+    "message": "Preparando modelo en dispositivo...",
+    "description": "Estado cuando se prepara el modelo"
+  },
+  "downloadingModelProgress": {
+    "message": "Descargando modelo en dispositivo... $PERCENT$%",
+    "description": "Mensaje de progreso de descarga",
+    "placeholders": {
+      "percent": {
+        "content": "$1",
+        "example": "75"
+      }
+    }
+  },
+  "extractingModel": {
+    "message": "Extrayendo y cargando modelo...",
+    "description": "Estado cuando se extrae el modelo"
+  },
+  "downloadingSize": {
+    "message": "Descargando... (~$SIZE$GB de 1.5GB)",
+    "description": "Progreso de tamaño de descarga",
+    "placeholders": {
+      "size": {
+        "content": "$1",
+        "example": "0.8"
+      }
+    }
+  },
+  "summaryTitle": {
+    "message": "Resumen",
+    "description": "Título de la sección de resumen"
+  },
+  "savedTosTitle": {
+    "message": "Términos Guardados",
+    "description": "Título de la sección de términos guardados"
+  },
+  "tipLabel": {
+    "message": "Consejo:",
+    "description": "Etiqueta de consejo"
+  },
+  "tipText": {
+    "message": "Haga clic en \"Simplificar\" para detectar y resumir automáticamente los Términos de Servicio en cualquier página web",
+    "description": "Texto de consejo"
+  },
+  "noActiveTab": {
+    "message": "No se encontró ninguna pestaña activa",
+    "description": "Error cuando no hay pestaña activa"
+  },
+  "extractingTos": {
+    "message": "Extrayendo texto de Términos...",
+    "description": "Estado cuando se extraen los Términos"
+  },
+  "modelDownloadError": {
+    "message": "Error al descargar el modelo",
+    "description": "Estado de error de descarga del modelo"
+  },
+  "summaryGenerated": {
+    "message": "Resumen generado",
+    "description": "Estado cuando se genera el resumen"
+  },
+  "summaryAvailable": {
+    "message": "Resumen disponible",
+    "description": "Estado cuando el resumen está disponible"
+  },
+  "failed": {
+    "message": "Falló",
+    "description": "Estado de fallo"
+  },
+  "errorOccurred": {
+    "message": "Ocurrió un error",
+    "description": "Estado de error ocurrido"
+  },
+  "failedToSimplify": {
+    "message": "Error al simplificar Términos",
+    "description": "Mensaje de error al fallar simplificación"
+  },
+  "modelDownloadTryAgain": {
+    "message": "Modelo descargándose - intente de nuevo en unos minutos",
+    "description": "Mensaje cuando el modelo se está descargando"
+  },
+  "modelDownloaded": {
+    "message": "¡Modelo descargado! Resumen generado",
+    "description": "Mensaje de éxito cuando se descarga el modelo"
+  },
+  "modelDownloadedSuccess": {
+    "message": "✅ ¡Modelo de IA descargado exitosamente y listo para uso futuro!",
+    "description": "Notificación de éxito de descarga del modelo"
+  },
+  "savedSuccessfully": {
+    "message": "Guardado exitosamente",
+    "description": "Mensaje de éxito al guardar"
+  },
+  "failedToSave": {
+    "message": "Error al guardar Términos",
+    "description": "Mensaje de error al guardar"
+  },
+  "noSummaryToSave": {
+    "message": "No hay resumen para guardar. Por favor, simplifique primero unos Términos.",
+    "description": "Error al intentar guardar sin resumen"
+  },
+  "comparePageTitle": {
+    "message": "Comparar Términos - Legal Lens",
+    "description": "Título para página de comparación"
+  },
+  "selectTwoToCompare": {
+    "message": "Por favor, seleccione dos Términos para comparar",
+    "description": "Error cuando se seleccionan menos de 2 para comparar"
+  },
+  "noSavedTos": {
+    "message": "Aún no hay Términos guardados. Guarde algunos resúmenes para compararlos más tarde.",
+    "description": "Mensaje cuando no hay Términos guardados"
+  },
+  "savedTosList": {
+    "message": "Lista de Términos Guardados",
+    "description": "Título de lista de términos guardados"
+  },
+  "selectToCompare": {
+    "message": "Seleccione elementos para comparar:",
+    "description": "Instrucción para seleccionar elementos"
+  },
+  "compareSelected": {
+    "message": "Comparar Seleccionados",
+    "description": "Botón de comparar para elementos seleccionados"
+  },
+  "deleteBtn": {
+    "message": "Eliminar",
+    "description": "Texto del botón eliminar"
+  },
+  "tosDetected": {
+    "message": "Ventana emergente de Términos detectada:",
+    "description": "Registro de consola para detección de Términos"
+  },
+  "explainTermsAria": {
+    "message": "Explicar Términos de Servicio usando IA",
+    "description": "Etiqueta aria para botón explicar"
+  },
+  "explainTermsTitle": {
+    "message": "Explicar Términos con IA",
+    "description": "Título para botón explicar"
+  },
+  "explainTermsText": {
+    "message": "🤖 Explicar con IA",
+    "description": "Texto para botón explicar"
+  },
+  "preparingToDownload": {
+    "message": "Preparando para descargar modelo de IA...",
+    "description": "Estado antes de que comience la descarga"
+  },
+  "error": {
+    "message": "Error:",
+    "description": "Prefijo de error"
+  },
+  "comparisonReady": {
+    "message": "Comparación lista",
+    "description": "Estado cuando la comparación está lista"
+  },
+  "failedToCompare": {
+    "message": "Error al comparar Términos",
+    "description": "Mensaje de error al fallar comparación"
+  },
+  "noSavedToCompare": {
+    "message": "No hay Términos guardados para comparar",
+    "description": "Error cuando no hay Términos guardados para comparar"
+  },
+  "sourceDownloading": {
+    "message": "🔄 Configuración inicial: Descargando modelo de IA",
+    "description": "Información de origen para descarga de modelo"
+  },
+  "sourceDownloadError": {
+    "message": "⚠️ La descarga del modelo encontró un problema",
+    "description": "Información de origen para error de descarga"
+  },
+  "sourceFetchedLink": {
+    "message": "✅ Documento de Términos encontrado y resumido exitosamente desde página vinculada",
+    "description": "Información de origen para enlace obtenido"
+  },
+  "sourceCurrentPagePopup": {
+    "message": "ℹ️ Ventana emergente de Términos resumida desde página actual",
+    "description": "Información de origen para ventana emergente de página actual"
+  },
+  "sourceCurrentPageElement": {
+    "message": "⚠️ Contenido resumido desde página actual (no se encontró enlace de Términos)",
+    "description": "Información de origen para elemento de página actual"
+  },
+  "sourceLabel": {
+    "message": "Fuente:",
+    "description": "Etiqueta para URL de origen"
+  },
+  "translating": {
+    "message": "Traduciendo resumen...",
+    "description": "Estado durante traducción"
+  },
+  "translated": {
+    "message": "Traducido a $LANGUAGE$",
+    "description": "Estado después de traducción",
+    "placeholders": {
+      "language": {
+        "content": "$1",
+        "example": "español"
+      }
+    }
+  },
+  "translationFailed": {
+    "message": "Traducción no disponible, mostrando original",
+    "description": "Mensaje cuando falla la traducción"
+  },
+  "downloadingTranslationModel": {
+    "message": "Descargando modelo de traducción...",
+    "description": "Estado al descargar modelo de traducción"
+  }
+}
