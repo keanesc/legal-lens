@@ -62,6 +62,8 @@ const detectedElements = new Set();
 // Track detected ToS links
 const detectedTosLinks = new Map(); // Map of URL -> {url, text, confidence}
 let observerActive = false;
+let fabButton = null; // Track the floating action button
+let currentTosElement = null; // Track the currently detected ToS element
 
 /**
  * Initialize content script
@@ -99,9 +101,29 @@ function startObserver() {
         }
       });
 
+      // Check removed nodes - hide FAB if ToS element was removed
+      mutation.removedNodes.forEach((node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          if (
+            currentTosElement &&
+            (node === currentTosElement || node.contains(currentTosElement))
+          ) {
+            hideFab();
+          }
+        }
+      });
+
       // Check attribute changes (e.g., style changes making popup visible)
       if (mutation.type === "attributes") {
         checkForTosPopup(mutation.target);
+
+        // Check if ToS element became hidden
+        if (
+          currentTosElement === mutation.target &&
+          !isElementVisible(mutation.target)
+        ) {
+          hideFab();
+        }
       }
     }
   });
@@ -222,28 +244,42 @@ function isModalLike(element) {
 }
 
 /**
- * Handle ToS detection - inject explain button
+ * Handle ToS detection - show floating action button
  */
 function handleTosDetection(element) {
   console.log("ToS popup detected:", element);
 
-  // Check if button already exists
-  const existingButton = element.querySelector(".tos-simplifier-explain-btn");
-  if (existingButton) return;
+  // Store the current ToS element
+  currentTosElement = element;
 
-  // Find a good place to inject the button
-  const buttonContainer = findButtonContainer(element);
-  if (!buttonContainer) return;
+  // Check if FAB already exists
+  if (fabButton && document.body.contains(fabButton)) {
+    // FAB already visible, just update the element reference
+    return;
+  }
 
-  // Create and inject button
-  const explainButton = createExplainButton();
-  buttonContainer.appendChild(explainButton);
+  // Create and inject FAB
+  fabButton = createExplainButton();
+  document.body.appendChild(fabButton);
 
   // Add click handler
-  explainButton.addEventListener("click", (e) => {
+  fabButton.addEventListener("click", (e) => {
     e.stopPropagation();
-    handleExplainClick(element);
+    if (currentTosElement) {
+      handleExplainClick(currentTosElement);
+    }
   });
+}
+
+/**
+ * Hide the floating action button
+ */
+function hideFab() {
+  if (fabButton && document.body.contains(fabButton)) {
+    fabButton.remove();
+    fabButton = null;
+  }
+  currentTosElement = null;
 }
 
 /**
@@ -285,32 +321,59 @@ function findButtonContainer(element) {
 }
 
 /**
- * Create the explain button element
+ * Create the explain button element as a Floating Action Button (FAB)
  */
 function createExplainButton() {
   const button = document.createElement("button");
   button.className = "tos-simplifier-explain-btn";
-  button.textContent = "🤖 Explain Terms";
+  button.setAttribute("aria-label", "Explain Terms of Service using AI");
+  button.setAttribute("role", "button");
+  button.title = "Explain Terms with AI";
+
+  // Get the extension icon URL
+  const iconUrl = chrome.runtime.getURL("icons/icon48.png");
+
   button.style.cssText = `
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 56px;
+    height: 56px;
     background: #4CAF50;
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
+    border-radius: 50%;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    margin: 5px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    transition: background 0.3s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    overflow: hidden;
   `;
 
+  // Create image element for the icon
+  const icon = document.createElement("img");
+  icon.src = iconUrl;
+  icon.style.cssText = `
+    width: 32px;
+    height: 32px;
+    pointer-events: none;
+  `;
+
+  button.appendChild(icon);
+
   button.addEventListener("mouseenter", () => {
-    button.style.background = "#45a049";
+    button.style.transform = "translateY(-50%) scale(1.1)";
+    button.style.boxShadow = "0 6px 16px rgba(0,0,0,0.4)";
   });
 
   button.addEventListener("mouseleave", () => {
-    button.style.background = "#4CAF50";
+    button.style.transform = "translateY(-50%) scale(1)";
+    button.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
   });
 
   return button;
@@ -319,15 +382,43 @@ function createExplainButton() {
 /**
  * Handle explain button click
  */
-
-/**
- * Handle explain button click
- */
 async function handleExplainClick(element) {
-  const button = element.querySelector(".tos-simplifier-explain-btn");
-  if (button) {
-    button.disabled = true;
-    button.textContent = "⏳ Summarizing...";
+  if (fabButton) {
+    fabButton.disabled = true;
+    fabButton.style.opacity = "0.6";
+    fabButton.style.cursor = "not-allowed";
+
+    // Show loading state - replace icon with spinner
+    const icon = fabButton.querySelector("img");
+    if (icon) {
+      icon.style.display = "none";
+    }
+
+    // Add loading spinner
+    const spinner = document.createElement("div");
+    spinner.className = "tos-fab-spinner";
+    spinner.style.cssText = `
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      animation: tos-spin 1s linear infinite;
+    `;
+    fabButton.appendChild(spinner);
+
+    // Add CSS animation for spinner
+    if (!document.getElementById("tos-fab-spinner-style")) {
+      const style = document.createElement("style");
+      style.id = "tos-fab-spinner-style";
+      style.textContent = `
+        @keyframes tos-spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
   }
 
   try {
@@ -339,7 +430,7 @@ async function handleExplainClick(element) {
         "⚠️ Could not extract sufficient text from the Terms of Service.",
         "error"
       );
-      resetExplainButton(button);
+      resetExplainButton();
       return;
     }
 
@@ -350,18 +441,18 @@ async function handleExplainClick(element) {
       url: window.location.href,
     };
 
-    await sendMessageWithRetry(msg, button);
+    await sendMessageWithRetry(msg);
   } catch (error) {
     console.error("Error handling explain click:", error);
     showResult("Error: " + error.message, "error");
-    resetExplainButton(button);
+    resetExplainButton();
   }
 }
 
 /**
  * Send message with retry logic for service worker reloads
  */
-async function sendMessageWithRetry(message, button, maxRetries = 3) {
+async function sendMessageWithRetry(message, maxRetries = 3) {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const response = await new Promise((resolve, reject) => {
@@ -374,7 +465,7 @@ async function sendMessageWithRetry(message, button, maxRetries = 3) {
         });
       });
 
-      handleSummarizeResponse(response, button);
+      handleSummarizeResponse(response);
       return;
     } catch (error) {
       const isLastAttempt = attempt === maxRetries - 1;
@@ -396,7 +487,7 @@ async function sendMessageWithRetry(message, button, maxRetries = 3) {
         "Error communicating with extension: " + error.message,
         "error"
       );
-      resetExplainButton(button);
+      resetExplainButton();
       return;
     }
   }
@@ -487,7 +578,7 @@ function showResult(message, type = "success") {
 /**
  * Handle summarize response and reset button
  */
-function handleSummarizeResponse(response, button) {
+function handleSummarizeResponse(response) {
   if (response && response.success) {
     showResult(response.summary, "success");
   } else {
@@ -496,13 +587,26 @@ function handleSummarizeResponse(response, button) {
       "error"
     );
   }
-  resetExplainButton(button);
+  resetExplainButton();
 }
 
-function resetExplainButton(button) {
-  if (button) {
-    button.disabled = false;
-    button.textContent = "🤖 Explain Terms";
+function resetExplainButton() {
+  if (fabButton) {
+    fabButton.disabled = false;
+    fabButton.style.opacity = "1";
+    fabButton.style.cursor = "pointer";
+
+    // Remove spinner
+    const spinner = fabButton.querySelector(".tos-fab-spinner");
+    if (spinner) {
+      spinner.remove();
+    }
+
+    // Show icon again
+    const icon = fabButton.querySelector("img");
+    if (icon) {
+      icon.style.display = "block";
+    }
   }
 }
 
