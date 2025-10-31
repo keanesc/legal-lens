@@ -1,4 +1,4 @@
-// Background Service Worker for ToS Simplifier Extension
+// Background Service Worker for Legal Lens Extension
 // Uses Chrome's on-device Summarizer API (Gemini Nano) to summarize ToS text
 
 // Track active tabs and their ToS detection status
@@ -11,12 +11,12 @@ let summarizerAvailability = null;
  * Check Summarizer API availability on startup
  */
 chrome.runtime.onInstalled.addListener(async () => {
-  console.log("ToS Simplifier extension installed/updated");
+  console.log("Legal Lens extension installed/updated");
   await checkSummarizerAvailability();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  console.log("ToS Simplifier extension started");
+  console.log("Legal Lens extension started");
   activeTabs.clear();
   await checkSummarizerAvailability();
 });
@@ -398,7 +398,7 @@ async function handleFetchTosPage(message, sender, sendResponse) {
       headers: {
         Accept:
           "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "User-Agent": "Mozilla/5.0 (compatible; ToS-Simplifier-Extension)",
+        "User-Agent": "Mozilla/5.0 (compatible; Legal-Lens-Extension)",
       },
       credentials: "omit", // Don't send cookies for privacy
     });

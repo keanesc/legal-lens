@@ -1,0 +1,260 @@
+{
+  "extName": {
+    "message": "Legal Lens",
+    "description": "Name of the extension"
+  },
+  "extDescription": {
+    "message": "Automatically detects and summarizes Terms of Service popups using AI",
+    "description": "Description of the extension"
+  },
+  "appTitle": {
+    "message": "Legal Lens",
+    "description": "Application title"
+  },
+  "appSubtitle": {
+    "message": "Understand Terms of Service in seconds with AI",
+    "description": "Application subtitle"
+  },
+  "statusReady": {
+    "message": "Ready",
+    "description": "Status indicator when ready"
+  },
+  "statusProcessing": {
+    "message": "Processing...",
+    "description": "Status when processing"
+  },
+  "btnSimplify": {
+    "message": "Simplify Terms of Service",
+    "description": "Simplify button text"
+  },
+  "btnSave": {
+    "message": "Save",
+    "description": "Save button text"
+  },
+  "btnCompare": {
+    "message": "Compare",
+    "description": "Compare button text"
+  },
+  "btnSaving": {
+    "message": "Saving...",
+    "description": "Save button text when saving"
+  },
+  "downloadingModel": {
+    "message": "Downloading AI Model",
+    "description": "Progress header for model download"
+  },
+  "initializingDownload": {
+    "message": "Initializing download...",
+    "description": "Initial download status"
+  },
+  "preparingModel": {
+    "message": "Preparing on-device model...",
+    "description": "Status when preparing model"
+  },
+  "downloadingModelProgress": {
+    "message": "Downloading on-device model... $PERCENT$%",
+    "description": "Download progress message",
+    "placeholders": {
+      "percent": {
+        "content": "$1",
+        "example": "75"
+      }
+    }
+  },
+  "extractingModel": {
+    "message": "Extracting and loading model...",
+    "description": "Status when extracting model"
+  },
+  "downloadingSize": {
+    "message": "Downloading... (~$SIZE$GB of 1.5GB)",
+    "description": "Download size progress",
+    "placeholders": {
+      "size": {
+        "content": "$1",
+        "example": "0.8"
+      }
+    }
+  },
+  "summaryTitle": {
+    "message": "Summary",
+    "description": "Summary section title"
+  },
+  "savedTosTitle": {
+    "message": "Saved ToS",
+    "description": "Saved ToS section title"
+  },
+  "tipLabel": {
+    "message": "Tip:",
+    "description": "Tip label"
+  },
+  "tipText": {
+    "message": "Click \"Simplify\" to automatically detect and summarize Terms of Service on any webpage",
+    "description": "Tip text"
+  },
+  "noActiveTab": {
+    "message": "No active tab found",
+    "description": "Error when no active tab"
+  },
+  "extractingTos": {
+    "message": "Extracting ToS text...",
+    "description": "Status when extracting ToS"
+  },
+  "modelDownloadError": {
+    "message": "Model download error",
+    "description": "Status for model download error"
+  },
+  "summaryGenerated": {
+    "message": "Summary generated",
+    "description": "Status when summary is generated"
+  },
+  "summaryAvailable": {
+    "message": "Summary available",
+    "description": "Status when summary is available"
+  },
+  "failed": {
+    "message": "Failed",
+    "description": "Failed status"
+  },
+  "errorOccurred": {
+    "message": "Error occurred",
+    "description": "Error occurred status"
+  },
+  "failedToSimplify": {
+    "message": "Failed to simplify ToS",
+    "description": "Error message for simplify failure"
+  },
+  "modelDownloadTryAgain": {
+    "message": "Model downloading - try again in a few minutes",
+    "description": "Message when model is downloading"
+  },
+  "modelDownloaded": {
+    "message": "Model downloaded! Summary generated",
+    "description": "Success message when model downloaded"
+  },
+  "modelDownloadedSuccess": {
+    "message": "✅ AI model downloaded successfully and is now ready for future use!",
+    "description": "Success notification for model download"
+  },
+  "savedSuccessfully": {
+    "message": "Saved successfully",
+    "description": "Save success message"
+  },
+  "failedToSave": {
+    "message": "Failed to save ToS",
+    "description": "Save failure message"
+  },
+  "noSummaryToSave": {
+    "message": "No summary to save. Please simplify a ToS first.",
+    "description": "Error when trying to save without summary"
+  },
+  "comparePageTitle": {
+    "message": "Compare ToS - Legal Lens",
+    "description": "Title for compare page"
+  },
+  "selectTwoToCompare": {
+    "message": "Please select two ToS to compare",
+    "description": "Error when less than 2 selected for comparison"
+  },
+  "noSavedTos": {
+    "message": "No saved ToS yet. Save some summaries to compare them later.",
+    "description": "Message when no ToS are saved"
+  },
+  "savedTosList": {
+    "message": "Saved ToS List",
+    "description": "Saved ToS list title"
+  },
+  "selectToCompare": {
+    "message": "Select items to compare:",
+    "description": "Instruction for selecting items"
+  },
+  "compareSelected": {
+    "message": "Compare Selected",
+    "description": "Compare button for selected items"
+  },
+  "deleteBtn": {
+    "message": "Delete",
+    "description": "Delete button text"
+  },
+  "tosDetected": {
+    "message": "ToS popup detected:",
+    "description": "Console log for ToS detection"
+  },
+  "explainTermsAria": {
+    "message": "Explain Terms of Service using AI",
+    "description": "Aria label for explain button"
+  },
+  "explainTermsTitle": {
+    "message": "Explain Terms with AI",
+    "description": "Title for explain button"
+  },
+  "explainTermsText": {
+    "message": "🤖 Explain with AI",
+    "description": "Text for explain button"
+  },
+  "preparingToDownload": {
+    "message": "Preparing to download AI model...",
+    "description": "Status before download starts"
+  },
+  "error": {
+    "message": "Error:",
+    "description": "Error prefix"
+  },
+  "comparisonReady": {
+    "message": "Comparison ready",
+    "description": "Status when comparison is ready"
+  },
+  "failedToCompare": {
+    "message": "Failed to compare ToS",
+    "description": "Error message for compare failure"
+  },
+  "noSavedToCompare": {
+    "message": "No saved ToS documents to compare with",
+    "description": "Error when no saved ToS to compare"
+  },
+  "sourceDownloading": {
+    "message": "🔄 First-time setup: Downloading AI model",
+    "description": "Source info for downloading model"
+  },
+  "sourceDownloadError": {
+    "message": "⚠️ Model download encountered an issue",
+    "description": "Source info for download error"
+  },
+  "sourceFetchedLink": {
+    "message": "✅ Successfully found and summarized ToS document from linked page",
+    "description": "Source info for fetched link"
+  },
+  "sourceCurrentPagePopup": {
+    "message": "ℹ️ Summarized ToS popup from current page",
+    "description": "Source info for current page popup"
+  },
+  "sourceCurrentPageElement": {
+    "message": "⚠️ Summarized content from current page (no ToS link found)",
+    "description": "Source info for current page element"
+  },
+  "sourceLabel": {
+    "message": "Source:",
+    "description": "Label for source URL"
+  },
+  "translating": {
+    "message": "Translating summary...",
+    "description": "Status when translating"
+  },
+  "translated": {
+    "message": "Translated to $LANGUAGE$",
+    "description": "Status after translation",
+    "placeholders": {
+      "language": {
+        "content": "$1",
+        "example": "Spanish"
+      }
+    }
+  },
+  "translationFailed": {
+    "message": "Translation unavailable, showing original",
+    "description": "Message when translation fails"
+  },
+  "downloadingTranslationModel": {
+    "message": "Downloading translation model...",
+    "description": "Status when downloading translation model"
+  }
+}

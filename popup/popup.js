@@ -1,7 +1,55 @@
-// Popup script for ToS Simplifier Extension
+// Popup script for Legal Lens Extension
 // Handles user interactions and communicates with background script
 
 let currentTabId = null;
+
+/**
+ * Initialize i18n for all elements with data-i18n attribute
+ */
+function initializeI18n() {
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    const key = element.getAttribute("data-i18n");
+    const message = chrome.i18n.getMessage(key);
+    if (message) {
+      element.textContent = message;
+    }
+  });
+}
+
+/**
+ * Get localized message with optional substitutions
+ */
+function i18n(key, substitutions) {
+  return chrome.i18n.getMessage(key, substitutions);
+}
+
+/**
+ * Get human-readable language name
+ */
+function getLanguageName(langCode) {
+  const languageNames = {
+    en: "English",
+    es: "Español",
+    fr: "Français",
+    de: "Deutsch",
+    it: "Italiano",
+    pt: "Português",
+    ja: "日本語",
+    zh: "中文",
+    ru: "Русский",
+    ar: "العربية",
+    hi: "हिन्दी",
+    ko: "한국어",
+    nl: "Nederlands",
+    pl: "Polski",
+    tr: "Türkçe",
+    sv: "Svenska",
+    da: "Dansk",
+    no: "Norsk",
+    fi: "Suomi",
+  };
+  return languageNames[langCode] || langCode.toUpperCase();
+}
 
 /**
  * Send message with retry logic for service worker reloads
@@ -43,11 +91,14 @@ async function sendMessageWithRetry(message, maxRetries = 3) {
  * Initialize popup when DOM is loaded
  */
 document.addEventListener("DOMContentLoaded", async () => {
+  // Initialize i18n translations
+  initializeI18n();
+
   // Get current active tab
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tabs.length > 0) {
     currentTabId = tabs[0].id;
-    updateStatus("Ready", "ready");
+    updateStatus(chrome.i18n.getMessage("statusReady"), "ready");
   }
 
   // Attach event listeners
@@ -68,9 +119,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const { loaded = 0, total = 0 } = message;
       if (total > 0) {
         const pct = Math.floor((loaded / total) * 100);
-        updateStatus(`Downloading on-device model... ${pct}%`, "processing");
+        updateStatus(
+          i18n("downloadingModelProgress", pct.toString()),
+          "processing"
+        );
       } else {
-        updateStatus("Preparing on-device model...", "processing");
+        updateStatus(i18n("preparingModel"), "processing");
       }
     }
   });
@@ -97,7 +151,7 @@ async function checkApiAvailability() {
       ) {
         updateStatus(response.message, "processing");
       } else {
-        updateStatus("Ready", "ready");
+        updateStatus(i18n("statusReady"), "ready");
       }
     }
   } catch (error) {
@@ -173,12 +227,11 @@ function updateDownloadProgress(percent, status) {
   if (status) {
     progressStatus.textContent = status;
   } else if (percent === 100) {
-    progressStatus.textContent = "Extracting and loading model...";
+    progressStatus.textContent = i18n("extractingModel");
     progressBar.classList.add("indeterminate");
   } else if (percent > 0) {
-    progressStatus.textContent = `Downloading... (~${Math.round(
-      (percent / 100) * 1.5
-    )}GB of 1.5GB)`;
+    const size = Math.round((percent / 100) * 1.5);
+    progressStatus.textContent = i18n("downloadingSize", size.toString());
   }
 
   // Hide progress bar after completion with delay
@@ -202,7 +255,7 @@ async function checkExistingData() {
 
   if (tosData && tosData.summary) {
     showSummary(tosData.summary, tosData.source, tosData.url);
-    updateStatus("Summary available", "success");
+    updateStatus(i18n("summaryAvailable"), "success");
   }
 }
 
@@ -211,15 +264,18 @@ async function checkExistingData() {
  */
 async function handleSimplify() {
   if (!currentTabId) {
-    showError("No active tab found");
+    showError(i18n("noActiveTab"));
     return;
   }
 
   const simplifyBtn = document.getElementById("simplifyBtn");
   simplifyBtn.disabled = true;
-  simplifyBtn.querySelector(".btn-text").textContent = "Processing...";
+  simplifyBtn.classList.add("loading");
+  const btnText = simplifyBtn.querySelector(".btn-text");
+  const originalText = btnText.textContent;
+  btnText.textContent = i18n("statusProcessing");
 
-  updateStatus("Extracting ToS text...", "processing");
+  updateStatus(i18n("extractingTos"), "processing");
 
   try {
     // Check if model needs download - show progress bar preemptively
@@ -230,7 +286,7 @@ async function handleSimplify() {
         apiStatus.availability === "after-download")
     ) {
       console.log("[Popup] Model needs download, showing progress bar");
-      updateDownloadProgress(0, "Preparing to download AI model...");
+      updateDownloadProgress(0, i18n("preparingToDownload"));
     }
 
     // Send message with retry logic
@@ -244,37 +300,32 @@ async function handleSimplify() {
       if (response.status === "downloading") {
         // Old behavior for backward compatibility (shouldn't happen with new code)
         showSummary(response.summary, "downloading", "");
-        updateStatus(
-          "Model downloading - try again in a few minutes",
-          "processing"
-        );
+        updateStatus(i18n("modelDownloadTryAgain"), "processing");
       } else if (response.status === "downloaded-and-ready") {
         // Model was just downloaded and is now ready
         showSummary(response.summary, response.source, response.tosUrl);
-        updateStatus("Model downloaded! Summary generated", "success");
-        showMessage(
-          "✅ AI model downloaded successfully and is now ready for future use!",
-          "success"
-        );
+        updateStatus(i18n("modelDownloaded"), "success");
+        showMessage(i18n("modelDownloadedSuccess"), "success");
       } else if (response.status === "download-error") {
         // Download error occurred
         showSummary(response.summary, "download-error", "");
-        updateStatus("Model download error", "error");
+        updateStatus(i18n("modelDownloadError"), "error");
       } else {
         // Normal summarization
         showSummary(response.summary, response.source, response.tosUrl);
-        updateStatus("Summary generated", "success");
+        updateStatus(i18n("summaryGenerated"), "success");
       }
     } else {
-      showError(response?.error || "Failed to simplify ToS");
-      updateStatus("Failed", "error");
+      showError(response?.error || i18n("failedToSimplify"));
+      updateStatus(i18n("failed"), "error");
     }
   } catch (error) {
-    showError("Error: " + error.message);
-    updateStatus("Error occurred", "error");
+    showError(i18n("error") + " " + error.message);
+    updateStatus(i18n("errorOccurred"), "error");
   } finally {
     simplifyBtn.disabled = false;
-    simplifyBtn.querySelector(".btn-text").textContent = "Simplify";
+    simplifyBtn.classList.remove("loading");
+    btnText.textContent = originalText;
   }
 }
 
@@ -283,13 +334,16 @@ async function handleSimplify() {
  */
 async function handleSave() {
   if (!currentTabId) {
-    showError("No active tab found");
+    showError(i18n("noActiveTab"));
     return;
   }
 
   const saveBtn = document.getElementById("saveBtn");
   saveBtn.disabled = true;
-  saveBtn.querySelector(".btn-text").textContent = "Saving...";
+  saveBtn.classList.add("loading");
+  const btnText = saveBtn.querySelector(".btn-text");
+  const originalText = btnText.textContent;
+  btnText.textContent = i18n("btnSaving");
 
   try {
     const response = await sendMessageWithRetry({
@@ -298,16 +352,17 @@ async function handleSave() {
     });
 
     if (response && response.success) {
-      showMessage("ToS saved successfully!", "success");
-      updateStatus("Saved", "success");
+      showMessage("✅ " + i18n("savedSuccessfully") + "!", "success");
+      updateStatus(i18n("savedSuccessfully"), "success");
     } else {
-      showError(response?.error || "Failed to save ToS");
+      showError(response?.error || i18n("failedToSave"));
     }
   } catch (error) {
-    showError("Error: " + error.message);
+    showError(i18n("error") + " " + error.message);
   } finally {
     saveBtn.disabled = false;
-    saveBtn.querySelector(".btn-text").textContent = "Save";
+    saveBtn.classList.remove("loading");
+    btnText.textContent = originalText;
   }
 }
 
@@ -316,13 +371,16 @@ async function handleSave() {
  */
 async function handleCompare() {
   if (!currentTabId) {
-    showError("No active tab found");
+    showError(i18n("noActiveTab"));
     return;
   }
 
   const compareBtn = document.getElementById("compareBtn");
   compareBtn.disabled = true;
-  compareBtn.querySelector(".btn-text").textContent = "Comparing...";
+  compareBtn.classList.add("loading");
+  const btnText = compareBtn.querySelector(".btn-text");
+  const originalText = btnText.textContent;
+  btnText.textContent = "Comparing...";
 
   try {
     const response = await sendMessageWithRetry({
@@ -332,28 +390,83 @@ async function handleCompare() {
 
     if (response && response.success) {
       showComparison(response.current, response.saved);
-      updateStatus("Comparison ready", "success");
+      updateStatus(i18n("comparisonReady"), "success");
     } else {
-      showError(response?.error || "Failed to compare ToS");
+      showError(response?.error || i18n("failedToCompare"));
     }
   } catch (error) {
-    showError("Error: " + error.message);
+    showError(i18n("error") + " " + error.message);
   } finally {
     compareBtn.disabled = false;
-    compareBtn.querySelector(".btn-text").textContent = "Compare";
+    compareBtn.classList.remove("loading");
+    btnText.textContent = originalText;
   }
 }
 
 /**
- * Show summary in result section
+ * Show summary in result section with automatic translation
  */
-function showSummary(summary, source, tosUrl) {
+async function showSummary(summary, source, tosUrl) {
   const resultSection = document.getElementById("resultSection");
   const summaryContent = document.getElementById("summaryContent");
   const sourceInfo = document.getElementById("tosSourceInfo");
 
+  // Get user's language
+  const userLanguage = getUserLanguage();
+
+  // Try to translate the summary if not in user's language
+  let displayText = summary;
+  let translationInfo = "";
+
+  // Only attempt translation if Translator API is supported and user language is not English
+  if (isTranslatorSupported() && userLanguage !== "en") {
+    try {
+      updateStatus(i18n("translating"), "processing");
+
+      // Translate with progress callback
+      const translationResult = await translateText(
+        summary,
+        null, // Auto-detect source language
+        userLanguage,
+        (percent, status) => {
+          console.log(`[Popup] Translation progress: ${percent}% - ${status}`);
+          if (percent > 0) {
+            updateStatus(
+              i18n("downloadingTranslationModel") + ` ${percent}%`,
+              "processing"
+            );
+          }
+        }
+      );
+
+      if (translationResult.wasTranslated) {
+        displayText = translationResult.translatedText;
+        const languageName = getLanguageName(userLanguage);
+        translationInfo = `<div class="translation-info">✓ ${i18n(
+          "translated",
+          languageName
+        )}</div>`;
+        updateStatus(i18n("summaryGenerated"), "success");
+      } else if (translationResult.error) {
+        console.warn(
+          "[Popup] Translation not available:",
+          translationResult.error
+        );
+        translationInfo = `<div class="translation-info">ℹ️ ${i18n(
+          "translationFailed"
+        )}</div>`;
+      }
+    } catch (error) {
+      console.error("[Popup] Translation error:", error);
+      // Fall back to original summary
+      translationInfo = `<div class="translation-info">ℹ️ ${i18n(
+        "translationFailed"
+      )}</div>`;
+    }
+  }
+
   // Safely set text content to prevent XSS
-  summaryContent.textContent = summary;
+  summaryContent.textContent = displayText;
 
   // Show source information if available
   if (source && sourceInfo) {
@@ -361,41 +474,54 @@ function showSummary(summary, source, tosUrl) {
     let sourceClass = "";
 
     if (source === "downloading") {
-      sourceMessage = `🔄 First-time setup: Downloading AI model`;
+      sourceMessage = i18n("sourceDownloading");
       sourceClass = "downloading";
     } else if (source === "download-error") {
-      sourceMessage = `⚠️ Model download encountered an issue`;
+      sourceMessage = i18n("sourceDownloadError");
       sourceClass = "downloading";
     } else if (source === "fetched-link") {
-      sourceMessage = `✅ Successfully found and summarized ToS document from linked page`;
+      sourceMessage = i18n("sourceFetchedLink");
       sourceClass = "fetched-link";
     } else if (source === "current-page-popup") {
-      sourceMessage = `ℹ️ Summarized ToS popup from current page`;
+      sourceMessage = i18n("sourceCurrentPagePopup");
       sourceClass = "";
     } else if (source === "current-page-element") {
-      sourceMessage = `⚠️ Summarized content from current page (no ToS link found)`;
+      sourceMessage = i18n("sourceCurrentPageElement");
       sourceClass = "";
     }
 
     if (sourceMessage) {
-      sourceInfo.innerHTML = `<strong>${sourceMessage}</strong>`;
+      let sourceHtml = `<strong>${sourceMessage}</strong>`;
+      if (translationInfo) {
+        sourceHtml += translationInfo;
+      }
+      sourceInfo.innerHTML = sourceHtml;
       if (tosUrl && tosUrl !== window.location.href) {
         const urlSpan = document.createElement("div");
         urlSpan.className = "source-url";
-        urlSpan.textContent = `Source: ${tosUrl}`;
+        urlSpan.textContent = `${i18n("sourceLabel")} ${tosUrl}`;
         sourceInfo.appendChild(urlSpan);
       }
       sourceInfo.className = `tos-source-info ${sourceClass}`;
       sourceInfo.style.display = "block";
     } else {
-      sourceInfo.style.display = "none";
+      if (translationInfo) {
+        sourceInfo.innerHTML = translationInfo;
+        sourceInfo.style.display = "block";
+      } else {
+        sourceInfo.style.display = "none";
+      }
     }
   }
 
   resultSection.style.display = "block";
 
-  // Scroll to result
-  resultSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  // Show scroll area and scroll to top
+  const scrollArea = document.querySelector(".content-scroll-area");
+  if (scrollArea) {
+    scrollArea.classList.add("has-content");
+    scrollArea.scrollTop = 0;
+  }
 }
 
 /**
@@ -406,7 +532,7 @@ function showComparison(current, saved) {
   const savedList = document.getElementById("savedList");
 
   if (!saved || saved.length === 0) {
-    showError("No saved ToS documents to compare with");
+    showError(i18n("noSavedToCompare"));
     return;
   }
 
@@ -464,7 +590,13 @@ function showComparison(current, saved) {
   });
 
   savedSection.style.display = "block";
-  savedSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+  // Show scroll area and scroll to top
+  const scrollArea = document.querySelector(".content-scroll-area");
+  if (scrollArea) {
+    scrollArea.classList.add("has-content");
+    scrollArea.scrollTop = 0;
+  }
 }
 
 /**
@@ -515,18 +647,40 @@ function showMessage(message, type = "success") {
     top: 10px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 10px 20px;
-    border-radius: 5px;
+    padding: 12px 24px;
+    border-radius: 8px;
     background: ${type === "error" ? "#f44336" : "#4CAF50"};
     color: white;
-    font-size: 12px;
-    z-index: 1000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideDown 0.3s ease-out;
   `;
+
+  // Add animation styles
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+  `;
+  document.head.appendChild(style);
 
   document.body.appendChild(messageEl);
 
   setTimeout(() => {
-    messageEl.remove();
-  }, 3000);
+    messageEl.style.animation = "slideDown 0.3s ease-out reverse";
+    setTimeout(() => {
+      messageEl.remove();
+      style.remove();
+    }, 300);
+  }, 2700);
 }

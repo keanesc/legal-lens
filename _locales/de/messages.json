@@ -1,0 +1,260 @@
+{
+  "extName": {
+    "message": "Legal Lens",
+    "description": "Name der Erweiterung"
+  },
+  "extDescription": {
+    "message": "Erkennt und fasst automatisch Nutzungsbedingungen-Popups mit KI zusammen",
+    "description": "Beschreibung der Erweiterung"
+  },
+  "appTitle": {
+    "message": "Legal Lens",
+    "description": "Anwendungstitel"
+  },
+  "appSubtitle": {
+    "message": "Verstehen Sie Nutzungsbedingungen in Sekunden mit KI",
+    "description": "Untertitel der Anwendung"
+  },
+  "statusReady": {
+    "message": "Bereit",
+    "description": "Statusanzeige wenn bereit"
+  },
+  "statusProcessing": {
+    "message": "Verarbeitung läuft...",
+    "description": "Status während der Verarbeitung"
+  },
+  "btnSimplify": {
+    "message": "Nutzungsbedingungen vereinfachen",
+    "description": "Text der Vereinfachen-Schaltfläche"
+  },
+  "btnSave": {
+    "message": "Speichern",
+    "description": "Text der Speichern-Schaltfläche"
+  },
+  "btnCompare": {
+    "message": "Vergleichen",
+    "description": "Text der Vergleichen-Schaltfläche"
+  },
+  "btnSaving": {
+    "message": "Wird gespeichert...",
+    "description": "Text der Speichern-Schaltfläche während des Speicherns"
+  },
+  "downloadingModel": {
+    "message": "KI-Modell wird heruntergeladen",
+    "description": "Fortschrittsüberschrift für Modell-Download"
+  },
+  "initializingDownload": {
+    "message": "Download wird initialisiert...",
+    "description": "Initialer Download-Status"
+  },
+  "preparingModel": {
+    "message": "Lokales Modell wird vorbereitet...",
+    "description": "Status bei Modellvorbereitung"
+  },
+  "downloadingModelProgress": {
+    "message": "Lokales Modell wird heruntergeladen... $PERCENT$%",
+    "description": "Download-Fortschrittsmeldung",
+    "placeholders": {
+      "percent": {
+        "content": "$1",
+        "example": "75"
+      }
+    }
+  },
+  "extractingModel": {
+    "message": "Modell wird extrahiert und geladen...",
+    "description": "Status bei Modellextraktion"
+  },
+  "downloadingSize": {
+    "message": "Download läuft... (~$SIZE$GB von 1,5GB)",
+    "description": "Download-Größenfortschritt",
+    "placeholders": {
+      "size": {
+        "content": "$1",
+        "example": "0.8"
+      }
+    }
+  },
+  "summaryTitle": {
+    "message": "Zusammenfassung",
+    "description": "Titel des Zusammenfassungsbereichs"
+  },
+  "savedTosTitle": {
+    "message": "Gespeicherte AGB",
+    "description": "Titel des Bereichs für gespeicherte AGB"
+  },
+  "tipLabel": {
+    "message": "Tipp:",
+    "description": "Tipp-Label"
+  },
+  "tipText": {
+    "message": "Klicken Sie auf \"Vereinfachen\", um Nutzungsbedingungen auf jeder Webseite automatisch zu erkennen und zusammenzufassen",
+    "description": "Tipp-Text"
+  },
+  "noActiveTab": {
+    "message": "Kein aktiver Tab gefunden",
+    "description": "Fehler wenn kein aktiver Tab vorhanden"
+  },
+  "extractingTos": {
+    "message": "AGB-Text wird extrahiert...",
+    "description": "Status bei AGB-Extraktion"
+  },
+  "modelDownloadError": {
+    "message": "Modell-Download-Fehler",
+    "description": "Status für Modell-Download-Fehler"
+  },
+  "summaryGenerated": {
+    "message": "Zusammenfassung erstellt",
+    "description": "Status wenn Zusammenfassung erstellt wurde"
+  },
+  "summaryAvailable": {
+    "message": "Zusammenfassung verfügbar",
+    "description": "Status wenn Zusammenfassung verfügbar ist"
+  },
+  "failed": {
+    "message": "Fehlgeschlagen",
+    "description": "Fehlgeschlagen-Status"
+  },
+  "errorOccurred": {
+    "message": "Ein Fehler ist aufgetreten",
+    "description": "Fehler aufgetreten Status"
+  },
+  "failedToSimplify": {
+    "message": "Vereinfachung der AGB fehlgeschlagen",
+    "description": "Fehlermeldung bei Vereinfachungsfehler"
+  },
+  "modelDownloadTryAgain": {
+    "message": "Modell wird heruntergeladen - versuchen Sie es in ein paar Minuten erneut",
+    "description": "Meldung wenn Modell heruntergeladen wird"
+  },
+  "modelDownloaded": {
+    "message": "Modell heruntergeladen! Zusammenfassung erstellt",
+    "description": "Erfolgsmeldung bei Modell-Download"
+  },
+  "modelDownloadedSuccess": {
+    "message": "✅ KI-Modell erfolgreich heruntergeladen und bereit für zukünftige Nutzung!",
+    "description": "Erfolgsbenachrichtigung für Modell-Download"
+  },
+  "savedSuccessfully": {
+    "message": "Erfolgreich gespeichert",
+    "description": "Speicher-Erfolgsmeldung"
+  },
+  "failedToSave": {
+    "message": "Speichern der AGB fehlgeschlagen",
+    "description": "Speicher-Fehlermeldung"
+  },
+  "noSummaryToSave": {
+    "message": "Keine Zusammenfassung zum Speichern. Bitte vereinfachen Sie zuerst AGB.",
+    "description": "Fehler beim Versuch zu speichern ohne Zusammenfassung"
+  },
+  "comparePageTitle": {
+    "message": "AGB vergleichen - Legal Lens",
+    "description": "Titel für Vergleichsseite"
+  },
+  "selectTwoToCompare": {
+    "message": "Bitte wählen Sie zwei AGB zum Vergleichen aus",
+    "description": "Fehler wenn weniger als 2 zum Vergleichen ausgewählt"
+  },
+  "noSavedTos": {
+    "message": "Noch keine gespeicherten AGB. Speichern Sie einige Zusammenfassungen, um sie später zu vergleichen.",
+    "description": "Meldung wenn keine AGB gespeichert sind"
+  },
+  "savedTosList": {
+    "message": "Liste gespeicherter AGB",
+    "description": "Titel der gespeicherten AGB-Liste"
+  },
+  "selectToCompare": {
+    "message": "Wählen Sie Elemente zum Vergleichen aus:",
+    "description": "Anweisung zum Auswählen von Elementen"
+  },
+  "compareSelected": {
+    "message": "Ausgewählte vergleichen",
+    "description": "Vergleichen-Schaltfläche für ausgewählte Elemente"
+  },
+  "deleteBtn": {
+    "message": "Löschen",
+    "description": "Text der Löschen-Schaltfläche"
+  },
+  "tosDetected": {
+    "message": "AGB-Popup erkannt:",
+    "description": "Konsolenprotokoll für AGB-Erkennung"
+  },
+  "explainTermsAria": {
+    "message": "Nutzungsbedingungen mit KI erklären",
+    "description": "Aria-Label für Erklären-Schaltfläche"
+  },
+  "explainTermsTitle": {
+    "message": "Bedingungen mit KI erklären",
+    "description": "Titel für Erklären-Schaltfläche"
+  },
+  "explainTermsText": {
+    "message": "🤖 Mit KI erklären",
+    "description": "Text für Erklären-Schaltfläche"
+  },
+  "preparingToDownload": {
+    "message": "Download des KI-Modells wird vorbereitet...",
+    "description": "Status vor Download-Beginn"
+  },
+  "error": {
+    "message": "Fehler:",
+    "description": "Fehler-Präfix"
+  },
+  "comparisonReady": {
+    "message": "Vergleich bereit",
+    "description": "Status wenn Vergleich bereit ist"
+  },
+  "failedToCompare": {
+    "message": "Vergleich der AGB fehlgeschlagen",
+    "description": "Fehlermeldung bei Vergleichsfehler"
+  },
+  "noSavedToCompare": {
+    "message": "Keine gespeicherten AGB zum Vergleichen vorhanden",
+    "description": "Fehler wenn keine gespeicherten AGB zum Vergleichen"
+  },
+  "sourceDownloading": {
+    "message": "🔄 Ersteinrichtung: KI-Modell wird heruntergeladen",
+    "description": "Quelleninfo für Modell-Download"
+  },
+  "sourceDownloadError": {
+    "message": "⚠️ Beim Modell-Download ist ein Problem aufgetreten",
+    "description": "Quelleninfo für Download-Fehler"
+  },
+  "sourceFetchedLink": {
+    "message": "✅ AGB-Dokument erfolgreich von verlinkter Seite gefunden und zusammengefasst",
+    "description": "Quelleninfo für abgerufenen Link"
+  },
+  "sourceCurrentPagePopup": {
+    "message": "ℹ️ AGB-Popup von aktueller Seite zusammengefasst",
+    "description": "Quelleninfo für Popup der aktuellen Seite"
+  },
+  "sourceCurrentPageElement": {
+    "message": "⚠️ Inhalt von aktueller Seite zusammengefasst (kein AGB-Link gefunden)",
+    "description": "Quelleninfo für Element der aktuellen Seite"
+  },
+  "sourceLabel": {
+    "message": "Quelle:",
+    "description": "Label für Quell-URL"
+  },
+  "translating": {
+    "message": "Zusammenfassung wird übersetzt...",
+    "description": "Status während Übersetzung"
+  },
+  "translated": {
+    "message": "Übersetzt auf $LANGUAGE$",
+    "description": "Status nach Übersetzung",
+    "placeholders": {
+      "language": {
+        "content": "$1",
+        "example": "Deutsch"
+      }
+    }
+  },
+  "translationFailed": {
+    "message": "Übersetzung nicht verfügbar, Original wird angezeigt",
+    "description": "Nachricht wenn Übersetzung fehlschlägt"
+  },
+  "downloadingTranslationModel": {
+    "message": "Übersetzungsmodell wird heruntergeladen...",
+    "description": "Status beim Herunterladen des Übersetzungsmodells"
+  }
+}

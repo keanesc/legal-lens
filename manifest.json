@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "ToS Simplifier",
+  "name": "__MSG_extName__",
   "version": "1.0.0",
-  "description": "Automatically detects and summarizes Terms of Service popups using AI",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["<all_urls>"],
   "background": {
