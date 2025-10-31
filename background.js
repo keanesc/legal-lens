@@ -491,28 +491,215 @@ async function summarizeLocally(text) {
       availability === "downloadable" ||
       availability === "downloading";
 
-    // Monitor model download progress (send both event shapes for compatibility)
-    const monitor = (m) => {
-      try {
-        m.addEventListener("downloadprogress", (e) => {
-          const loaded = e?.loaded ?? 0;
-          const total = e?.total ?? 0;
-          // MODEL_PROGRESS style
-          chrome.runtime.sendMessage({ type: "MODEL_PROGRESS", loaded, total }).catch(() => {});
+    // Helper functions for chunk processing
+    const quotaTokens = 3000; // Default quota
+    const MAX_LENGTH = Math.max(1000, Math.floor(quotaTokens * 3));
+    const OVERLAP = 200;
 
-          // DOWNLOAD_PROGRESS style (percent + status)
-          let percent;
-          if (total > 0) percent = Math.round((loaded / total) * 100);
-          else if (loaded <= 1) percent = Math.round(loaded * 100);
-          else percent = 0;
-          const statusTxt = percent < 100
-            ? `Downloading AI model... (${percent}%)`
-            : "Download complete. Extracting and loading model...";
-          chrome.runtime.sendMessage({ type: "DOWNLOAD_PROGRESS", percent, status: statusTxt }).catch(() => {});
-        });
-      } catch (_) {}
+    const splitText = (fullText, maxLength = MAX_LENGTH, overlap = OVERLAP) => {
+      const chunks = [];
+      let start = 0;
+      const textLen = fullText.length;
+      while (start < textLen) {
+        let end = start + maxLength;
+        if (end < textLen) {
+          const boundary = fullText.lastIndexOf('.', end);
+          end = boundary > start ? boundary + 1 : end;
+        } else {
+          end = textLen;
+        }
+        const chunk = fullText.slice(start, end).trim();
+        if (chunk) chunks.push(chunk);
+        if (end >= textLen) break;
+        start = Math.max(0, end - overlap);
+      }
+      return chunks;
     };
 
+    const summarizeChunksRecursively = async (model, inputText, depth = 0) => {
+      const MAX_DEPTH = 8;
+      if (depth > MAX_DEPTH) {
+        console.warn('[Summarizer] Max recursion depth reached. Returning last level text.');
+        return inputText.slice(0, MAX_LENGTH);
+      }
+      if (inputText.length <= MAX_LENGTH) {
+        return await model.summarize(inputText, { context: 'Summarize for a general audience.' });
+      }
+      const chunks = splitText(inputText, MAX_LENGTH, OVERLAP);
+      const partials = [];
+      for (const chunk of chunks) {
+        const partSummary = await model.summarize(chunk);
+        partials.push(partSummary);
+      }
+      const combined = partials.join('\n');
+      return await summarizeChunksRecursively(model, combined, depth + 1);
+    };
+
+    if (needsDownload) {
+      console.log(
+        `[Summarizer] Model ${availability}. Will initiate download with progress monitoring (approximately 1.5GB).`
+      );
+
+      // IMPORTANT: If the model download doesn't start automatically,
+      // users need to manually trigger it from chrome://components/
+      console.log(
+        "[Summarizer] NOTE: If download doesn't start, go to chrome://components/ and click 'Check for update' on 'Optimization Guide On Device Model'"
+      );
+
+      // Send initial progress update
+      chrome.runtime
+        .sendMessage({
+          type: "DOWNLOAD_PROGRESS",
+          percent: 0,
+          status:
+            "Starting download... If stuck, open chrome://components/ and click 'Check for update' on 'Optimization Guide On Device Model'",
+        })
+        .catch(() => {
+          console.log(
+            "[Summarizer] Could not send initial progress to popup (popup may be closed)"
+          );
+        });
+
+      // Create summarizer with download progress monitoring
+      try {
+        let downloadProgress = 0;
+        let modelExtractingOrLoading = false;
+        let lastProgressUpdate = Date.now();
+        let progressCheckInterval = null;
+
+        const summarizer = await self.Summarizer.create({
+          type: "tldr",
+          format: "plain-text",
+          length: "long",
+          sharedContext: "Summarizing legal Terms of Service text for clarity.",
+          monitor(m) {
+            console.log("[Summarizer] Monitor callback registered");
+
+            // Set up a fallback progress checker since downloadprogress events may not fire reliably
+            progressCheckInterval = setInterval(() => {
+              const timeSinceLastUpdate = Date.now() - lastProgressUpdate;
+              if (timeSinceLastUpdate > 5000 && downloadProgress === 0) {
+                console.log(
+                  "[Summarizer] No progress updates received for 5+ seconds. Download may be happening in background."
+                );
+                chrome.runtime
+                  .sendMessage({
+                    type: "DOWNLOAD_PROGRESS",
+                    percent: 0,
+                    status:
+                      "Downloading in background... This may take several minutes. Check chrome://components for 'Optimization Guide On Device Model' status.",
+                  })
+                  .catch(() => {});
+              }
+            }, 5000);
+
+            m.addEventListener("downloadprogress", (e) => {
+              lastProgressUpdate = Date.now();
+              downloadProgress = e.loaded;
+              const percent = Math.round(e.loaded * 100);
+              console.log(
+                `[Summarizer] Download progress event: loaded=${e.loaded}, percent=${percent}%`
+              );
+
+              // Send progress update to popup
+              const message = {
+                type: "DOWNLOAD_PROGRESS",
+                percent: percent,
+                status:
+                  percent < 100
+                    ? `Downloading AI model... (${percent}%)`
+                    : "Download complete. Extracting and loading model...",
+              };
+
+              console.log("[Summarizer] Sending message to popup:", message);
+
+              chrome.runtime
+                .sendMessage(message)
+                .then((response) => {
+                  console.log(
+                    "[Summarizer] Message sent successfully, response:",
+                    response
+                  );
+                })
+                .catch((error) => {
+                  // Popup might not be open, ignore error
+                  console.log(
+                    "[Summarizer] Could not send progress to popup:",
+                    error.message
+                  );
+                });
+
+              // When download completes, model needs to be extracted and loaded
+              if (e.loaded === 1 && !modelExtractingOrLoading) {
+                modelExtractingOrLoading = true;
+                console.log(
+                  "[Summarizer] Download complete. Extracting and loading model into memory..."
+                );
+
+                // Send extraction status to popup
+                chrome.runtime
+                  .sendMessage({
+                    type: "DOWNLOAD_PROGRESS",
+                    percent: 100,
+                    status: "Extracting and loading model into memory...",
+                  })
+                  .catch(() => {});
+              }
+            });
+          },
+        });
+
+        // Clear the progress check interval
+        if (progressCheckInterval) {
+          clearInterval(progressCheckInterval);
+        }
+
+        console.log(
+          "[Summarizer] Summarizer created successfully, beginning summarization..."
+        );
+
+        // Model is ready, perform recursive summarization
+        const summary = await summarizeChunksRecursively(summarizer, text);
+
+        // Clean up
+        summarizer.destroy();
+
+        // Update cached availability since model is now ready
+        summarizerAvailability = "readily";
+
+        // Send completion message to popup
+        chrome.runtime
+          .sendMessage({
+            type: "DOWNLOAD_PROGRESS",
+            percent: 100,
+            status: "complete",
+          })
+          .catch(() => {});
+
+        return {
+          summary,
+          status: "downloaded-and-ready",
+        };
+      } catch (error) {
+        console.error(
+          "[Summarizer] Error during model download/creation:",
+          error
+        );
+        return {
+          summary:
+            "⚠️ Model download initiated but encountered an error.\n\n" +
+            "The AI model download may be in progress in the background. " +
+            "Please wait a few minutes and try again.\n\n" +
+            "You can check download status at chrome://components/ " +
+            "(look for 'Optimization Guide On Device Model').\n\n" +
+            "Error: " +
+            error.message,
+          status: "download-error",
+        };
+      }
+    }
+
+    // Model is already available, create summarizer and perform summarization
     let summarizer;
     try {
       summarizer = await self.Summarizer.create({
@@ -520,54 +707,10 @@ async function summarizeLocally(text) {
         format: "plain-text",
         length: "long",
         sharedContext: "Summarizing legal Terms of Service text for clarity.",
-        monitor,
       });
 
-      const quotaTokens = Number(summarizer.inputQuota || 3000);
-      const MAX_LENGTH = Math.max(1000, Math.floor(quotaTokens * 3));
-      const OVERLAP = 200;
-
-      const splitText = (fullText, maxLength = MAX_LENGTH, overlap = OVERLAP) => {
-        const chunks = [];
-        let start = 0;
-        const textLen = fullText.length;
-        while (start < textLen) {
-          let end = start + maxLength;
-          if (end < textLen) {
-            const boundary = fullText.lastIndexOf('.', end);
-            end = boundary > start ? boundary + 1 : end;
-          } else {
-            end = textLen;
-          }
-          const chunk = fullText.slice(start, end).trim();
-          if (chunk) chunks.push(chunk);
-          if (end >= textLen) break;
-          start = Math.max(0, end - overlap);
-        }
-        return chunks;
-      };
-
-      const summarizeChunksRecursively = async (model, inputText, depth = 0) => {
-        const MAX_DEPTH = 8;
-        if (depth > MAX_DEPTH) {
-          console.warn('[Summarizer] Max recursion depth reached. Returning last level text.');
-          return inputText.slice(0, MAX_LENGTH);
-        }
-        if (inputText.length <= MAX_LENGTH) {
-          return await model.summarize(inputText, { context: 'Summarize for a general audience.' });
-        }
-        const chunks = splitText(inputText, MAX_LENGTH, OVERLAP);
-        const partials = [];
-        for (const chunk of chunks) {
-          const partSummary = await model.summarize(chunk);
-          partials.push(partSummary);
-        }
-        const combined = partials.join('\n');
-        return await summarizeChunksRecursively(model, combined, depth + 1);
-      };
-
       const summary = await summarizeChunksRecursively(summarizer, text);
-      const status = needsDownload ? 'downloaded-and-ready' : 'available';
+      const status = 'readily';
       return { summary, status };
     } finally {
       try { summarizer && summarizer.destroy && summarizer.destroy(); } catch (_) {}
