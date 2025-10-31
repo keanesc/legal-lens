@@ -406,8 +406,12 @@ function showSummary(summary, source, tosUrl) {
 
   resultSection.style.display = "block";
 
-  // Scroll to result
-  resultSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  // Show scroll area and scroll to top
+  const scrollArea = document.querySelector(".content-scroll-area");
+  if (scrollArea) {
+    scrollArea.classList.add("has-content");
+    scrollArea.scrollTop = 0;
+  }
 }
 
 /**
@@ -476,7 +480,13 @@ function showComparison(current, saved) {
   });
 
   savedSection.style.display = "block";
-  savedSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+  // Show scroll area and scroll to top
+  const scrollArea = document.querySelector(".content-scroll-area");
+  if (scrollArea) {
+    scrollArea.classList.add("has-content");
+    scrollArea.scrollTop = 0;
+  }
 }
 
 /**

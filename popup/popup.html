@@ -40,37 +40,41 @@
           <span class="btn-text">Simplify Terms of Service</span>
         </button>
 
-        <div style="display: flex; gap: 12px;">
-          <button id="saveBtn" class="action-btn secondary" style="flex: 1;">
+        <div style="display: flex; gap: 12px">
+          <button id="saveBtn" class="action-btn secondary" style="flex: 1">
             <span class="btn-icon">💾</span>
             <span class="btn-text">Save</span>
           </button>
 
-          <button id="compareBtn" class="action-btn secondary" style="flex: 1;">
+          <button id="compareBtn" class="action-btn secondary" style="flex: 1">
             <span class="btn-icon">📊</span>
             <span class="btn-text">Compare</span>
           </button>
         </div>
       </div>
 
-      <div class="result-section" id="resultSection" style="display: none">
-        <h3>Summary</h3>
-        <div
-          id="tosSourceInfo"
-          class="tos-source-info"
-          style="display: none"
-        ></div>
-        <div id="summaryContent" class="summary-content"></div>
-      </div>
+      <!-- Scrollable content area -->
+      <div class="content-scroll-area">
+        <div class="result-section" id="resultSection" style="display: none">
+          <h3>Summary</h3>
+          <div
+            id="tosSourceInfo"
+            class="tos-source-info"
+            style="display: none"
+          ></div>
+          <div id="summaryContent" class="summary-content"></div>
+        </div>
 
-      <div class="saved-section" id="savedSection" style="display: none">
-        <h3>Saved ToS</h3>
-        <div id="savedList" class="saved-list"></div>
+        <div class="saved-section" id="savedSection" style="display: none">
+          <h3>Saved ToS</h3>
+          <div id="savedList" class="saved-list"></div>
+        </div>
       </div>
 
       <div class="info-section">
         <p class="info-text">
-          💡 <strong>Tip:</strong> Click "Simplify" to automatically detect and summarize Terms of Service on any webpage
+          💡 <strong>Tip:</strong> Click "Simplify" to automatically detect and
+          summarize Terms of Service on any webpage
         </p>
       </div>
     </div>
