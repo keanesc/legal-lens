@@ -185,8 +185,8 @@ All data is stored locally using `chrome.storage.local`.
 
 ## ⚖️ License
 
-Licensed under the **MIT License**.  
-You are free to use, modify, and distribute this extension with attribution.
+Licensed under the **GNU General Public License v3.0 (GPL-3.0)**.  
+You are free to use, modify, and distribute this extension under the terms of the GPL-3.0 license.
 
 ---
 
@@ -205,7 +205,7 @@ Areas for improvement include:
 
 **Author:** _Your Name_  
 **Version:** 1.0.0  
-**License:** MIT  
+**License:** GNU GPL v3.0  
 **Repository:** [GitHub Link Here]
 
 ---
