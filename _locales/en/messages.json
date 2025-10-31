@@ -256,5 +256,21 @@
   "downloadingTranslationModel": {
     "message": "Downloading translation model...",
     "description": "Status when downloading translation model"
+  },
+  "btnChat": {
+    "message": "Ask Questions",
+    "description": "Chat button text"
+  },
+  "chatbotTitle": {
+    "message": "Ask about this document",
+    "description": "Chatbot section title"
+  },
+  "chatbotWelcome": {
+    "message": "Hi! I can help you understand this document. Ask me anything about the terms of service.",
+    "description": "Chatbot welcome message"
+  },
+  "chatbotInputPlaceholder": {
+    "message": "Ask a question about this document...",
+    "description": "Chatbot input placeholder"
   }
 }

@@ -256,5 +256,21 @@
   "downloadingTranslationModel": {
     "message": "Übersetzungsmodell wird heruntergeladen...",
     "description": "Status beim Herunterladen des Übersetzungsmodells"
+  },
+  "btnChat": {
+    "message": "Fragen Stellen",
+    "description": "Text der Chat-Schaltfläche"
+  },
+  "chatbotTitle": {
+    "message": "Fragen Sie zu diesem Dokument",
+    "description": "Titel des Chatbot-Abschnitts"
+  },
+  "chatbotWelcome": {
+    "message": "Hallo! Ich kann Ihnen helfen, dieses Dokument zu verstehen. Fragen Sie mich alles über die Nutzungsbedingungen.",
+    "description": "Willkommensnachricht des Chatbots"
+  },
+  "chatbotInputPlaceholder": {
+    "message": "Stellen Sie eine Frage zu diesem Dokument...",
+    "description": "Platzhalter für Chatbot-Eingabe"
   }
 }

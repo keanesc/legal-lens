@@ -14,6 +14,15 @@ function initializeI18n() {
       element.textContent = message;
     }
   });
+
+  // Handle placeholder attributes
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    const key = element.getAttribute("data-i18n-placeholder");
+    const message = chrome.i18n.getMessage(key);
+    if (message) {
+      element.placeholder = message;
+    }
+  });
 }
 
 /**
@@ -166,10 +175,38 @@ function attachEventListeners() {
   const simplifyBtn = document.getElementById("simplifyBtn");
   const saveBtn = document.getElementById("saveBtn");
   const compareBtn = document.getElementById("compareBtn");
+  const chatBtn = document.getElementById("chatBtn");
 
   simplifyBtn.addEventListener("click", handleSimplify);
   saveBtn.addEventListener("click", handleSave);
   compareBtn.addEventListener("click", handleCompare);
+
+  if (chatBtn) {
+    chatBtn.addEventListener("click", handleChatToggle);
+    console.log("[Popup] Chat button event listener attached");
+  } else {
+    console.error("[Popup] Chat button not found in DOM");
+  }
+
+  // Chatbot event listeners
+  const sendChatBtn = document.getElementById("sendChatBtn");
+  const chatbotInput = document.getElementById("chatbotInput");
+  const closeChatBtn = document.getElementById("closeChatBtn");
+
+  if (sendChatBtn) {
+    sendChatBtn.addEventListener("click", handleSendMessage);
+  }
+  if (chatbotInput) {
+    chatbotInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+      }
+    });
+  }
+  if (closeChatBtn) {
+    closeChatBtn.addEventListener("click", handleChatToggle);
+  }
 }
 
 /**
@@ -683,4 +720,309 @@ function showMessage(message, type = "success") {
       style.remove();
     }, 300);
   }, 2700);
+}
+
+// ============================================
+// Chatbot Functionality using Prompt API
+// ============================================
+
+let chatSession = null;
+let documentContext = "";
+
+/**
+ * Toggle chatbot section visibility
+ */
+function handleChatToggle() {
+  console.log("[Popup] handleChatToggle called");
+  const chatbotSection = document.getElementById("chatbotSection");
+  const savedSection = document.getElementById("savedSection");
+  const resultSection = document.getElementById("resultSection");
+  const contentScrollArea = document.querySelector(".content-scroll-area");
+  const chatBtn = document.getElementById("chatBtn");
+
+  if (!chatbotSection) {
+    console.error("[Popup] chatbotSection not found!");
+    return;
+  }
+
+  // Check if chatbot is currently hidden
+  const isHidden =
+    chatbotSection.style.display === "none" ||
+    chatbotSection.style.display === "";
+
+  console.log(
+    "[Popup] Chatbot isHidden:",
+    isHidden,
+    "display:",
+    chatbotSection.style.display
+  );
+
+  if (isHidden) {
+    // Show chatbot
+    console.log("[Popup] Showing chatbot");
+
+    // Make sure the content scroll area is visible
+    if (contentScrollArea) {
+      contentScrollArea.classList.add("has-content");
+    }
+
+    // Hide other sections
+    if (savedSection) savedSection.style.display = "none";
+    if (resultSection) resultSection.style.display = "none";
+
+    // Show chatbot
+    chatbotSection.style.display = "flex";
+    chatBtn.classList.add("active");
+
+    // Initialize chatbot if needed
+    if (!chatSession) {
+      initializeChatbot();
+    }
+
+    // Focus input
+    setTimeout(() => {
+      const input = document.getElementById("chatbotInput");
+      if (input) input.focus();
+    }, 100);
+  } else {
+    // Hide chatbot
+    console.log("[Popup] Hiding chatbot");
+    chatbotSection.style.display = "none";
+    chatBtn.classList.remove("active");
+
+    // Show result section if it has content
+    if (
+      resultSection &&
+      resultSection.querySelector(".summary-content")?.textContent
+    ) {
+      resultSection.style.display = "block";
+    } else if (contentScrollArea) {
+      // Hide content area if no other content
+      contentScrollArea.classList.remove("has-content");
+    }
+  }
+}
+
+/**
+ * Initialize chatbot with Prompt API
+ */
+async function initializeChatbot() {
+  try {
+    // Get document context from current ToS
+    const result = await chrome.storage.local.get([`tos_${currentTabId}`]);
+    const tosData = result[`tos_${currentTabId}`];
+
+    console.log("[Chatbot] ToS data retrieved:", tosData);
+
+    if (
+      tosData &&
+      (tosData.fullText || tosData.summary || tosData.originalText)
+    ) {
+      // Use fullText first (for chatbot), fall back to summary or originalText
+      documentContext =
+        tosData.fullText || tosData.summary || tosData.originalText || "";
+
+      if (!documentContext) {
+        addChatMessage(
+          "assistant",
+          "Please simplify a document first so I can answer questions about it.",
+          true
+        );
+        return;
+      }
+
+      console.log(
+        "[Chatbot] Document context loaded, length:",
+        documentContext.length
+      );
+    } else {
+      // No document loaded, show message
+      addChatMessage(
+        "assistant",
+        "Please simplify a document first so I can answer questions about it.",
+        true
+      );
+      return;
+    }
+
+    // Check if Prompt API is available (it's a global API, not window.ai)
+    if (!self.LanguageModel) {
+      addChatMessage(
+        "assistant",
+        "Sorry, the AI Prompt API is not available in your browser. Please make sure you're using Chrome 128+ with AI features enabled at chrome://flags/#optimization-guide-on-device-model",
+        true
+      );
+      return;
+    }
+
+    // Check availability
+    const availability = await self.LanguageModel.availability();
+
+    if (availability === "no" || availability === "unavailable") {
+      addChatMessage(
+        "assistant",
+        "AI features are not available. Please enable chrome://flags/#optimization-guide-on-device-model and chrome://flags/#prompt-api-for-gemini-nano",
+        true
+      );
+      return;
+    }
+
+    if (availability === "after-download" || availability === "downloadable") {
+      addChatMessage(
+        "assistant",
+        "The AI model needs to be downloaded first. This will happen automatically when you use it.",
+        false
+      );
+    }
+
+    // Create session with document context as initial prompt
+    const systemPrompt = `You are a helpful assistant that answers questions about legal documents, specifically Terms of Service agreements. The user has provided a document for analysis. Answer questions about this document accurately and concisely. If the answer is not in the document, say so.`;
+
+    chatSession = await self.LanguageModel.create({
+      initialPrompts: [
+        { role: "system", content: systemPrompt },
+        {
+          role: "user",
+          content: `Here is the document to analyze:\n\n${documentContext.substring(
+            0,
+            3000
+          )}`,
+        },
+        {
+          role: "assistant",
+          content:
+            "I have read and understood the document. I am ready to answer your questions about it.",
+        },
+      ],
+    });
+
+    console.log("[Chatbot] Session initialized successfully");
+  } catch (error) {
+    console.error("[Chatbot] Error initializing:", error);
+    addChatMessage(
+      "assistant",
+      `There was an error initializing the chatbot: ${error.message}. Please try again.`,
+      true
+    );
+  }
+}
+
+/**
+ * Handle sending a message
+ */
+async function handleSendMessage() {
+  const input = document.getElementById("chatbotInput");
+  const message = input.value.trim();
+
+  if (!message) return;
+
+  // Add user message to chat
+  addChatMessage("user", message);
+  input.value = "";
+
+  // Disable input while processing
+  const sendBtn = document.getElementById("sendChatBtn");
+  sendBtn.disabled = true;
+  input.disabled = true;
+
+  // Show thinking indicator
+  const thinkingId = addThinkingIndicator();
+
+  try {
+    // Initialize session if not already done
+    if (!chatSession) {
+      await initializeChatbot();
+    }
+
+    if (!chatSession) {
+      removeThinkingIndicator(thinkingId);
+      addChatMessage(
+        "assistant",
+        "Please simplify a document first so I can answer questions about it."
+      );
+      return;
+    }
+
+    // Get response from Prompt API
+    const response = await chatSession.prompt(message);
+
+    // Remove thinking indicator
+    removeThinkingIndicator(thinkingId);
+
+    // Add assistant response
+    addChatMessage("assistant", response);
+  } catch (error) {
+    console.error("[Chatbot] Error getting response:", error);
+    removeThinkingIndicator(thinkingId);
+    addChatMessage(
+      "assistant",
+      "I'm sorry, I encountered an error. Please try asking your question again.",
+      true
+    );
+  } finally {
+    // Re-enable input
+    sendBtn.disabled = false;
+    input.disabled = false;
+    input.focus();
+  }
+}
+
+/**
+ * Add a message to the chat
+ */
+function addChatMessage(role, content, isError = false) {
+  const messagesContainer = document.getElementById("chatbotMessages");
+  const messageDiv = document.createElement("div");
+  messageDiv.className = `chatbot-message ${role}${isError ? " error" : ""}`;
+
+  const bubbleDiv = document.createElement("div");
+  bubbleDiv.className = "message-bubble";
+  bubbleDiv.textContent = content;
+
+  messageDiv.appendChild(bubbleDiv);
+  messagesContainer.appendChild(messageDiv);
+
+  // Scroll to bottom
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+/**
+ * Add thinking indicator
+ */
+function addThinkingIndicator() {
+  const messagesContainer = document.getElementById("chatbotMessages");
+  const thinkingDiv = document.createElement("div");
+  const thinkingId = `thinking-${Date.now()}`;
+  thinkingDiv.id = thinkingId;
+  thinkingDiv.className = "chatbot-message assistant thinking";
+
+  const bubbleDiv = document.createElement("div");
+  bubbleDiv.className = "message-bubble";
+
+  const typingIndicator = document.createElement("div");
+  typingIndicator.className = "typing-indicator";
+  typingIndicator.innerHTML = `
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+  `;
+
+  bubbleDiv.appendChild(typingIndicator);
+  thinkingDiv.appendChild(bubbleDiv);
+  messagesContainer.appendChild(thinkingDiv);
+
+  // Scroll to bottom
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+  return thinkingId;
+}
+
+/**
+ * Remove thinking indicator
+ */
+function removeThinkingIndicator(thinkingId) {
+  const thinkingDiv = document.getElementById(thinkingId);
+  if (thinkingDiv) {
+    thinkingDiv.remove();
+  }
 }

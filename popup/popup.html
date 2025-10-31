@@ -49,11 +49,18 @@
         </button>
 
         <div style="display: flex; gap: 12px">
+          <button id="chatBtn" class="action-btn secondary" style="flex: 1">
+            <span class="btn-icon">💬</span>
+            <span class="btn-text" data-i18n="btnChat">Ask Questions</span>
+          </button>
+
           <button id="saveBtn" class="action-btn secondary" style="flex: 1">
             <span class="btn-icon">💾</span>
             <span class="btn-text" data-i18n="btnSave">Save</span>
           </button>
+        </div>
 
+        <div style="display: flex; gap: 12px">
           <button id="compareBtn" class="action-btn secondary" style="flex: 1">
             <span class="btn-icon">📊</span>
             <span class="btn-text" data-i18n="btnCompare">Compare</span>
@@ -71,6 +78,41 @@
             style="display: none"
           ></div>
           <div id="summaryContent" class="summary-content"></div>
+        </div>
+
+        <!-- Chatbot Section -->
+        <div class="chatbot-section" id="chatbotSection" style="display: none">
+          <div class="chatbot-header">
+            <h3>
+              <span class="chatbot-icon">🤖</span>
+              <span data-i18n="chatbotTitle">Ask about this document</span>
+            </h3>
+            <button id="closeChatBtn" class="close-chat-btn" title="Close chat">
+              ✕
+            </button>
+          </div>
+          <div class="chatbot-messages" id="chatbotMessages">
+            <div class="chatbot-message assistant">
+              <div class="message-bubble">
+                <span data-i18n="chatbotWelcome"
+                  >Hi! I can help you understand this document. Ask me anything
+                  about the terms of service.</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="chatbot-input-area">
+            <input
+              type="text"
+              id="chatbotInput"
+              class="chatbot-input"
+              placeholder="Ask a question about this document..."
+              data-i18n-placeholder="chatbotInputPlaceholder"
+            />
+            <button id="sendChatBtn" class="send-chat-btn" title="Send">
+              <span class="send-icon">➤</span>
+            </button>
+          </div>
         </div>
 
         <div class="saved-section" id="savedSection" style="display: none">

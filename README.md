@@ -13,6 +13,9 @@ It helps users quickly understand complex legal language while keeping all proce
 - **On-Device AI Summarization**  
   Simplifies ToS text locally using Chrome's **Gemini Nano Summarizer API** — no data ever leaves your device.
 
+- **AI-Powered Chatbot** 🆕  
+  Ask questions about the document using Chrome's **Prompt API** — get instant answers about privacy, payments, terms, and more!
+
 - **Multilingual Support**  
   Automatically translates summaries to your browser's language using Chrome's **Translator API** — both UI and content in your language!
 
@@ -59,14 +62,21 @@ legal-lens-extension/
 
 ### 1. Enable On-Device AI in Chrome
 
-1. **Update Chrome** to version 122 or later  
+1. **Update Chrome** to version 138 or later  
    → Go to `chrome://settings/help`
 2. **Enable the Optimization Guide flag**  
    → chrome://flags/#optimization-guide-on-device-model
 
    Set to **Enabled BypassPerfRequirement**  
 Restart Chrome afterward.
-3. **Verify Model Download**  
+3. **Enable Prompt API (for Chatbot)**  
+Navigate to:  
+   - `chrome://flags/#prompt-api-for-gemini-nano`  
+   Set to **Enabled**  
+   - `chrome://flags/#optimization-guide-on-device-model`  
+   Set to **Enabled**  
+Restart Chrome afterward.
+4. **Verify Model Download**  
 Open `chrome://components/` → find **Optimization Guide On Device Model** → confirm status.
 
 ---
@@ -99,9 +109,20 @@ The extension will now appear in your Chrome toolbar.
 ## Usage
 
 1. Visit any website showing a Terms of Service or Privacy Policy pop-up.  
-2. The extension automatically detects ToS content and displays an **“Explain Terms”** button.  
+2. The extension automatically detects ToS content and displays an **"Explain Terms"** button.  
 3. Click the button or open the extension popup → click **Simplify**.  
 4. Review the summary and optionally **Save** it for comparison with future ToS versions.
+5. Click **Ask Questions** to open the AI chatbot and ask specific questions about the document.
+
+### Using the Chatbot 🤖
+
+After simplifying a document:
+1. Click the **"Ask Questions"** button
+2. Type your question (e.g., "What data do they collect?")
+3. Press Enter or click Send
+4. Get instant AI-powered answers based on the document
+
+See the [Chatbot User Guide](docs/CHATBOT_USER_GUIDE.md) for detailed instructions.
 
 ---
 

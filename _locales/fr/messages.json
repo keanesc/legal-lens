@@ -256,5 +256,21 @@
   "downloadingTranslationModel": {
     "message": "Téléchargement du modèle de traduction...",
     "description": "État lors du téléchargement du modèle de traduction"
+  },
+  "btnChat": {
+    "message": "Poser des Questions",
+    "description": "Texte du bouton de chat"
+  },
+  "chatbotTitle": {
+    "message": "Posez des questions sur ce document",
+    "description": "Titre de la section chatbot"
+  },
+  "chatbotWelcome": {
+    "message": "Bonjour ! Je peux vous aider à comprendre ce document. Posez-moi n'importe quelle question sur les conditions d'utilisation.",
+    "description": "Message de bienvenue du chatbot"
+  },
+  "chatbotInputPlaceholder": {
+    "message": "Posez une question sur ce document...",
+    "description": "Espace réservé d'entrée du chatbot"
   }
 }
